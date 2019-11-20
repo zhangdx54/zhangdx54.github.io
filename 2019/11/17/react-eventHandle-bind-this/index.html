@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+<meta name="theme-color" content="#f8f5ec">
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="description" content="react-eventHandle-bind(this)"><meta name="keywords" content="react, zzz"><link rel="alternate" href="/atom.xml" title="zzz">
+<link rel="canonical" href="http://yoursite.com/2019/11/17/react-eventHandle-bind-this/">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=">
+
+<script id="baidu_push">
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<script>
+  window.config = {"leancloud":"","toc":"","fancybox":"","pjax":"","latex":""};
+</script>
+
+    <title>react-eventHandle-bind(this) - zzz</title>
+  </head>
+
+  <body><div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/." class="logo">zzz</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list"></ul>
+</nav>
+<div class="container" id="mobile-panel">
+      <header id="header" class="header"><div class="logo-wrapper">
+  <a href="/." class="logo">zzz</a>
+</div>
+
+<nav class="site-navbar"></nav>
+</header>
+
+      <main id="main" class="main">
+        <div class="content-wrapper">
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">react-eventHandle-bind(this)
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2019-11-17
+        </span></div>
+    </header>
+
+    <div class="post-content"><h1 id="为什么react类组件中为需事件绑定this"><a href="#为什么react类组件中为需事件绑定this" class="headerlink" title="为什么react类组件中为需事件绑定this"></a>为什么react类组件中为需事件绑定this</h1><p>日常写react ，不可避免会遇到一些受控组件和事件的处理。我们必须在自定义组件的构造函数中 将这些方法 和 组件实例 用 .bind()  方法绑定。</p>
+<p>这篇文章，让我们一起找出愿意</p>
+<p>先回顾一下 .bind() 方法</p>
+<blockquote>
+<p><em>bind()</em>方法创建一个新的函数，在<em>bind()</em>被调用时，这个新函数的this被bind的第一个参数指定，其余的参数将作为新函数的参数供调用时使用。</p>
+</blockquote>
+<p>简单来说 bind 方法 可以改变 函数中的 this 指向</p>
+<h3 id="是-JS-的锅，-react-不背"><a href="#是-JS-的锅，-react-不背" class="headerlink" title="是 JS 的锅， react 不背"></a>是 JS 的锅， react 不背</h3><p>背锅 就严重了 ，哈哈哈哈。用了JSX 或是 react 框架，开发者貌似只需要考虑极少的事情，这都是 ::this::的功劳！ （原文作者写到这里 我并没有读懂他真的想说什么，这么会绕圈子的吗。。）</p>
+<p>先看看 如果我们在 组件实例中不绑定处理事件，会发生什么</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">class Foo extends React.Component&#123;</span><br><span class="line">  constructor( props )&#123;</span><br><span class="line">    super( props );</span><br><span class="line">  &#125;</span><br><span class="line">    </span><br><span class="line">  handleClick(event)&#123;</span><br><span class="line">    console.log(this); // ‘this’ is undefined</span><br><span class="line">  &#125;</span><br><span class="line">    </span><br><span class="line">  render()&#123;</span><br><span class="line">    return (</span><br><span class="line">      &lt;button type=“button” onClick=&#123;this.handleClick&#125;&gt;</span><br><span class="line">        Click Me</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ReactDOM.render(</span><br><span class="line">  &lt;Foo /&gt;,</span><br><span class="line">  document.getElementById(“app”)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>运行这段代码 点击后 事件处理函数 console 出来的 this 是 undefined，<code>handleClick</code> 方法 看似失去了 <code>context</code> 执行环境</p>
+<p>本篇文章不会详述 this ，推荐 YOU DONT KNOW JAVASCRIPT. 系列，有一章非常翔实的讲述了 this，写得真的非常好（原作者虽然说本文不会嫌贵讲this，但下面的一些列子 都是 👆提到那本书中的内容）<br>基于本文的讨论内容，简单概括，函数内的<code>this</code>只依赖与函数的调用方法</p>
+<h2 id="默认-binding"><a href="#默认-binding" class="headerlink" title="默认 binding"></a>默认 binding</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function display() &#123;</span><br><span class="line">	console.log(this) // this 会 指向 window 或 gobal 对象</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dispaly();</span><br></pre></td></tr></table></figure>
+
+<p>这是一个普通的函数调用，函数内部的<code>this</code>指向全局作用域的window，非严格模式下是这样的，严格模式下，<code>this</code> 是 undefined</p>
+<h2 id="隐式-binding"><a href="#隐式-binding" class="headerlink" title="隐式 binding"></a>隐式 binding</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">let obj = &#123;</span><br><span class="line">	name: ‘Anny’,</span><br><span class="line">	display: function() &#123;</span><br><span class="line">	  console.log(this.name)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">obj.display() // Anny</span><br></pre></td></tr></table></figure>
+
+<p>如果 我们以一个 obj 对象 来调用函数，<code>this</code>指向函数内部</p>
+<p>但当我们将这个函数引用赋值给其他变量并使用这个新的函数去调用该函数时，我们在 <code>display()</code> 中 获得不用的 <code>this</code>值</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">let name = ‘uh oh! global’</span><br><span class="line">let outerDisplay = obj.display</span><br><span class="line">outerDisplay() // uh oh! global</span><br></pre></td></tr></table></figure>
+
+<p>上面这个例子中，调用 <code>outerDisplay</code>函数时，没有指定一个具体的上下文对象，这是一个没有所有者对象的纯函数调用。这种情况下，<code>display</code>内部的<code>this</code>值回退到<em>默认绑定</em>，所以这个this 是指向全局的（非严格模式下）</p>
+<p>在将这些函数以回调函数的形式传递给 自定义函数，第三方函数或 像<code>setTimeout</code>这样的内建函数，上面的判断就显得很有意义</p>
+<p>思考下面的 自定义函数 <code>setTimeout</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function setTimeout(callback, delay) &#123;</span><br><span class="line">	callback()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">setTimeout(obj.display, 1000)</span><br></pre></td></tr></table></figure>
+
+<p>显而易见，当调用 <code>setTimeout</code>函数时，JS 引擎内部将 obj.display 赋值给 calback，<code>callback = obj.display</code>， 这个赋值操作造成了 display方法 弄丢了它的上下文，最终 settimeout 函数执行后，this 会指向全局作用域</p>
+<h2 id="显示-binding"><a href="#显示-binding" class="headerlink" title="显示 binding"></a>显示 binding</h2><p>为避免上述尴尬场面，我们可以使用<code>bind</code>方法显示的 将 <code>this</code>与 方法绑定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">let name = ‘uh oh! global’</span><br><span class="line">obj.display = obj.display.bind(obj)</span><br><span class="line">const outerDisplay = obj.display</span><br><span class="line">outerDisplay() // Anny</span><br></pre></td></tr></table></figure>
+
+<p>现在，我们就可以愉快的调用 <code>this</code>指向obj 内部的<code>display</code>方法咯</p>
+<p>即使我们将 <code>obj.display</code>当作回调函数，<code>this</code>值 毅然决然的还是指向 <code>obj</code>内部的 <code>display</code>方法</p>
+<h2 id="只用Javascript-重现下-文章最开始的场景"><a href="#只用Javascript-重现下-文章最开始的场景" class="headerlink" title="只用Javascript 重现下 文章最开始的场景"></a>只用Javascript 重现下 文章最开始的场景</h2><p>文章开头，我们看到是 react 组件 调用的 <code>Foo</code>，如果不将 事件 与 <code>this</code>绑定，内部的事件函数就是 <code>undefined</code></p>
+<p>就像之前一直在强调的，与 react 框架的运行方式无关，只是因为<code>this</code>绑定在 javascript 中的 运行方式。这次 我们移除掉react框架的影响，构建一个相似的 纯 JS 的例子来模仿上面的代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">class Foo &#123;</span><br><span class="line">	constructor(name) &#123;</span><br><span class="line">		this.name = name</span><br><span class="line">	&#125;</span><br><span class="line">	display()&#123;</span><br><span class="line">		console.log(this.name)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">let foo = new Foo(‘Eric’)</span><br><span class="line">foo.display() // Eroc</span><br><span class="line"></span><br><span class="line">// 下面这个赋值操作是模拟 react 组件中将事件作为 callback 传递时失去 `context` 的行为</span><br><span class="line">let display = foo.display</span><br><span class="line">display() // TypeError: this is undefined</span><br></pre></td></tr></table></figure>
+
+<p>我们不是模拟实际的事件和处理程序，而是用同义代码替代。正如我们在 React 组件示例中所看到的那样，由于将处理程序作为回调传递后，丢失了上下文，导致 this 值变成 undefined。这也是我们在这个纯 JavaScript 代码片段中观察到的。</p>
+<p>你可能会问：“等一下！难道 this 的值不是应该指向全局对象么，因为我们是按照默认绑定的规则，在非严格模式下运行的它。“</p>
+<p><em>答案是否定的</em> 原因如下：</p>
+<blockquote>
+<p>/类声明/和/类表达式/的主体以  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode" target="_blank" rel="noopener">严格模式</a>  执行，主要包括构造函数、静态方法和原型方法。Getter 和 setter 函数也在严格模式下执行。</p>
+</blockquote>
+<p>所以为了避免错误，我们需要像下文这样绑定 this 的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">class Foo &#123;</span><br><span class="line">  constructor(name)&#123;</span><br><span class="line">    this.name = name</span><br><span class="line">    this.display = this.display.bind(this);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  display()&#123;</span><br><span class="line">    console.log(this.name);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var foo = new Foo(‘Saurabh’);</span><br><span class="line">foo.display(); // Saurabh</span><br><span class="line"></span><br><span class="line">var display = foo.display;</span><br><span class="line">display(); // Saurabh</span><br></pre></td></tr></table></figure>
+
+<p>我们不仅可以在构造函数中执行此操作，也可以在其他位置执行此操作。考虑这个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">class Foo &#123;</span><br><span class="line">  constructor(name)&#123;</span><br><span class="line">    this.name = name;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  display()&#123;</span><br><span class="line">    console.log(this.name);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var foo = new Foo(‘Saurabh’);</span><br><span class="line">foo.display = foo.display.bind(foo);</span><br><span class="line">foo.display(); // Saurabh</span><br><span class="line"></span><br><span class="line">var display = foo.display;</span><br><span class="line">display(); // Saurabh</span><br></pre></td></tr></table></figure>
+
+<p>但由于构造函数是所有初始化发生的地方，因此它是编写绑定事件语句最佳的位置。</p>
+<p><em>为什么我们不需要为箭头函数绑定<strong>‘this’</strong>？</em></p>
+<p>在 React 组件内，我们有另外两种定义事件处理程序的方式。</p>
+<ul>
+<li><p><a href="https://babeljs.io/docs/plugins/transform-class-properties/" target="_blank" rel="noopener">公共类字段语法(实验)</a> </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">class Foo extends React.Component&#123;</span><br><span class="line">  handleClick = () =&gt; &#123;</span><br><span class="line">    console.log(this); </span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  render()&#123;</span><br><span class="line">    return (</span><br><span class="line">      &lt;button type=“button” onClick=&#123;this.handleClick&#125;&gt;</span><br><span class="line">        Click Me</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ReactDOM.render(</span><br><span class="line">  &lt;Foo /&gt;,</span><br><span class="line">  document.getElementById(“app”)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/Arrow_functions" target="_blank" rel="noopener">回调中的箭头函数</a> </p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">class Foo extends React.Component&#123;</span><br><span class="line"> handleClick(event)&#123;</span><br><span class="line">    console.log(this);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  render()&#123;</span><br><span class="line">    return (</span><br><span class="line">      &lt;button type=&quot;button&quot; onClick=&#123;(e) =&gt; this.handleClick(e)&#125;&gt;</span><br><span class="line">        Click Me</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ReactDOM.render(</span><br><span class="line">  &lt;Foo /&gt;,</span><br><span class="line">  document.getElementById(“app”)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>这两个都使用了ES6引入的箭头函数。当使用这些替代方法时，我们的事件处理程序已经自动绑定到了组件实例上，并且我们不需要在构造函数中绑定它。<br>原因是在箭头函数的情况下，this 是有<em>词法</em>约束力的。这意味它可以使用封闭的函数上下文或者全局上下文作为 this 的值。</p>
+<p>在公共类字段语法的例子中，箭头函数被包含在 Foo 类中或者构造函数中，所以它的上下文就是组件实例，而这就是我们想要的。</p>
+<p>在箭头函数作为回调的例子中，箭头函数被包含在 render() 方法中，该方法由 React 在组件实例的上下文中调用。这就是为什么箭头函数也可以捕获相同的上下文，并且其中的 this 值将正确的指向组件实例。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在 React 的类组件中，当我们把事件处理函数引用作为回调传递过去，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;button type=&quot;button&quot; onClick=&#123;this.handleClick&#125;&gt;Click Me&lt;/button&gt;</span><br></pre></td></tr></table></figure>
+
+<p>事件处理程序方法会丢失其<em>隐式绑定</em>的上下文。当事件被触发并且处理程序被调用时，this的值会回退到<em>默认绑定</em>，即值为 undefined，这是因为类声明和原型方法是以严格模式运行。</p>
+<p>当我们将事件处理程序的 this 绑定到构造函数中的组件实例时，我们可以将它作为回调传递，而不用担心会丢失它的上下文。</p>
+<p>箭头函数可以免除这种行为，因为它使用的是<em>词法</em> this <em>绑定</em>，会将其自动绑定到定义他们的函数上下文。</p>
+
+      </div>
+      
+      <footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/react/">react</a>
+            </div>
+        
+        <nav class="post-nav"><a class="next" href="/2019/10/22/DLL-DllPlugin/">
+        <span class="next-text nav-default">DLL && DllPlugin</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"></div></div>
+      </main>
+
+      <footer id="footer" class="footer"><div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/ahonn/hexo-theme-even">Even</a>
+  </span>
+
+  <span class="copyright-year">&copy;2019<span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">zzz</span>
+  </span>
+</div>
+</footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
+  <script type="text/javascript" src="/js/src/even.js?v="></script>
+</body>
+</html>
