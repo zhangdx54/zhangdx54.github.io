@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+<meta name="theme-color" content="#f8f5ec">
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="description" content="Getting Started with WebRTC"><meta name="keywords" content="webrtc, zzz"><link rel="alternate" href="/atom.xml" title="zzz">
+<link rel="canonical" href="http://yoursite.com/2020/02/22/Getting-Started-with-WebRTC/">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=">
+
+<script id="baidu_push">
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<script>
+  window.config = {"leancloud":"","toc":"","fancybox":"","pjax":"","latex":""};
+</script>
+
+    <title>Getting Started with WebRTC - zzz</title>
+  </head>
+
+  <body><div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/." class="logo">zzz</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list"></ul>
+</nav>
+<div class="container" id="mobile-panel">
+      <header id="header" class="header"><div class="logo-wrapper">
+  <a href="/." class="logo">zzz</a>
+</div>
+
+<nav class="site-navbar"></nav>
+</header>
+
+      <main id="main" class="main">
+        <div class="content-wrapper">
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">Getting Started with WebRTC
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2020-02-22
+        </span></div>
+    </header>
+
+    <div class="post-content"><h1 id="webRTC-是个啥？"><a href="#webRTC-是个啥？" class="headerlink" title="webRTC  是个啥？"></a>webRTC  是个啥？</h1><blockquote>
+<p>WebRTC 技术是激烈的开放的 Web 战争中一大突破。-Brendan Eich, inventor of JavaScript</p>
+</blockquote>
+<h3 id="WebRTC-技术简史"><a href="#WebRTC-技术简史" class="headerlink" title="WebRTC 技术简史"></a>WebRTC 技术简史</h3><p>让人类通过网络进行音视频通信是网络最后的巨大挑战：实时通信( RTC )。实时通信就像网络上在文本框中输入文本一样自然，没有它，就限制了我们开发新的方式使人们互动交流起来。</p>
+<p>从历史上看，RTC 变化很大很复杂，需要昂贵的音视频技术授权或者花费巨大代价去开发，RTC 技术与现有的内容、数据和服务整合一直都很困难和耗时，在网络上尤其如此。</p>
+<p>Gmail 视频聊天在 2008 年开始流行，在 2011 年 Google 推出视频群聊，它使用 GoogleTalk 服务，就像 Gmail 一样。Google 收购了 GIPS，它是一个为 RTC 开发出许多组件的一个公司，例如编解码和回声消除技术。Google 开源了 GIPS 开发的技术，与相关机构 IET 和 W3C 制定行业标准。在 2011 年 5 月，爱立信实现第一 个  <a href="https://labs.ericsson.com/developer-community/blog/beyond-html5-peer-peer-conversational-video" target="_blank" rel="noopener">WebRTC应用</a> 。<br>WebRTC 已经实现了对于实时通信，免插件音频数据传输的标准制定。需求是：</p>
+<ul>
+<li>许多网络服务已经使用了 RTC，但是需要下载，本地应用或者是插件。包括 Skype、Facebook、Google Hangouts。</li>
+<li>下载安装升级插件是复杂的，可能出错的，令人厌烦的。</li>
+<li>插件可能很难部署、调试、故障排除等——可能需要技术授权，复杂集成和昂贵的技术。说服人们去安装插件是很难的。<br>WebRTC 项目的指导原则是APIs应该是开源的，免费的，标准化的，浏览器内置的，比现有技术更高效的。</li>
+</ul>
+<h3 id="webRTC-遍布各处"><a href="#webRTC-遍布各处" class="headerlink" title="webRTC 遍布各处"></a>webRTC 遍布各处</h3><p>WebRTC 应用在了各种 App 上，包括 WhatsApp、Facebook Manager、appear.in 和 TokBox 平台上。甚至在 iOS 浏览器上的实验 WebRTC。WebRTC 也被 WebKitGTK+ 和 QT 内置使用。</p>
+<p>微软在 Edge 中增加了 MediaCapture 和 Stream API。<br>WebRTC 实现了三个 APIs：</p>
+<ul>
+<li><a href="http://www.html5rocks.com/en/tutorials/webrtc/basics/#toc-mediastream" target="_blank" rel="noopener">MeidaStream</a> (aka getUserMedia)</li>
+<li><a href="http://www.html5rocks.com/en/tutorials/webrtc/basics/#toc-rtcpeerconnection" target="_blank" rel="noopener">RTCPeerConnection</a> </li>
+<li><a href="http://www.html5rocks.com/en/tutorials/webrtc/basics/#toc-rtcdatachannel" target="_blank" rel="noopener">RTCDataChannel</a> </li>
+</ul>
+<p><em>getUserMedia</em> 在 Chrome、Opera、FireFox 和 Edge 中都实现了。看一看跨浏览器的  <a href="https://webrtc.github.io/samples/src/content/getusermedia/gum/" target="_blank" rel="noopener">Demo</a>  和亚马逊的  <a href="http://webaudiodemos.appspot.com/" target="_blank" rel="noopener">例子</a> ，使用 getUserMedia 作为音频的输入。</p>
+<p><em>RTCPeerConnection</em> 在 Chrome、Opera 和 FireFox 中实现。关于名字的解释：经过几次迭代，RTCPeerConnection 被 Chrome 和 Opera 实现为 webkitRTCPeerConnection，被 FireFox 实现为 mozRTCPeerConnection。其他的名字都是过时的，当标准稳定时，前缀会被删除。在 <a href="https://webrtc.github.io/samples/src/content/peerconnection/pc1/" target="_blank" rel="noopener">Github</a>  上有超级简单的演示项目，构建在  <a href="https://apprtc.appspot.com/" target="_blank" rel="noopener">apprtc.appspot.com</a>  上。这个应用使用 adapter.ja，一个 JS 库，来帮助 WebRTC 跨浏览器。</p>
+<p><em>RTCDataChannel</em> 被 Chrome、Opera 和 FireFox 支持。检出  <a href="https://webrtc.github.io/samples/" target="_blank" rel="noopener">Github</a>  上的 Demo 看看怎么使用。</p>
+<p>WebRTC 需要做几件事：</p>
+<ul>
+<li>获取音视频流或其他数据流。</li>
+<li>获取网络信息例如 IP 地址和端口号，与其他客户端交换这些信息来进行连接，包括穿透防火墙。</li>
+<li>向 signaling 报告错误或启动会话关闭连接等。</li>
+<li>对于分辨率解码器等与其他客户端交换信息。</li>
+<li>传输音视频或其他数据信息。</li>
+</ul>
+<p>为了获得和传输数据，WebRTC 实现了以下 APIs：</p>
+<ul>
+<li>MediaStream：从客户摄像头或麦克风获取数据流。</li>
+<li>RTCPeerConnection：音视频通话，包括加密和带宽等的管理。</li>
+<li>RTCDataChannel：P2P 数据传输管道。<br>（接下来详细讨论 WebRTC 的网络和信道）</li>
+</ul>
+<h3 id="MediaStream-aka-getUserMedia"><a href="#MediaStream-aka-getUserMedia" class="headerlink" title="MediaStream(aka getUserMedia)"></a>MediaStream(aka getUserMedia)</h3><p>MediaStream API 代表同步流媒体。例如一个来自摄像头和麦克风的流媒体输入已经同步了音视频。（不要混淆 MediaStream 和 track 标签，它们完全不同）。<br>也许理解 MediaStream 的容易的方式是看它的表现：</p>
+<ol>
+<li>在 Chrome、Opera 打开 demo：<br><a href="https://webrtc.github.io/samples/src/content/getusermedia/gum。" target="_blank" rel="noopener">https://webrtc.github.io/samples/src/content/getusermedia/gum。</a></li>
+<li>打开调试器。</li>
+<li>检查全局范围内的流变量。</li>
+</ol>
+<p>每个 MediaStream 有一个输入，navigator.getUserMedia()，也包括一个输出，输出到 video 标签或者是 RTCPeerConnection。<br>getUserMedia() 方法有三个参数：</p>
+<ul>
+<li>一个约束对象。</li>
+<li>成功回调，如果被调用，传递一个 MediaStream。</li>
+<li>失败回调，如果被调用，传递一个错误对象。<br>每个 MediaStream 有一个标签，例如<br>“as’Xk7EuLhsuHKbnjLWkW4yYGNJJ8ONsgwHBvLQ”<br>一个 MediaStreamTracks 数组被 getAudioTracks() 和 getVideoTracks() 返回。</li>
+</ul>
+<p>对于<br><a href="https://webrtc.github.io/samples/src/content/getusermedia/gum/" target="_blank" rel="noopener">https://webrtc.github.io/samples/src/content/getusermedia/gum/</a><br>例如 stream.getAudioTracks() 返回一个空的数组，因为没有音频，假设一个摄像头被连接上了，stream.getVideoTracks() 返回一个 MediaStreamTrack 数组，代表这个摄像头的流。每个 MediaStreamTrack 有一个类型(音频或视频)，一个标签(有时就像 FaceTime HD 照相机)，表示一个或多个音视频通道。在这个例子中，只有视频没有音频。很容易想象更多的例子：例如，一个聊天应用，前置想象头后置摄像头和麦克风，屏幕共享应用。</p>
+<p>在 Chrome 或 Opera 中，URL.createObjectURL() 方法可以转换一个 MediaStream 到一个 Blog URL，可以被设置作为视频的源。(在 FireFox 和 Opera 中，这个视频源可以通过 stream 本身创建)，自从 M25 版本，基于 Chromium 的浏览器( Chrome 和 Opera )允许通过 getUserMedia 获取的音频数据放置到 audio 和 video 标签上(但是注意到默认情况下将时静音状态)。</p>
+<p>getUserMedia 可以被作为  <a href="http://updates.html5rocks.com/2012/09/Live-Web-Audio-Input-Enabled" target="_blank" rel="noopener">网页音频输入API</a>  ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">function gotStream(stream) &#123;</span><br><span class="line">    window.AudioContext = window.AudioContext || window.webkitAudioContext;</span><br><span class="line">    var audioContext = new AudioContext();</span><br><span class="line"></span><br><span class="line">    // Create an AudioNode from the stream</span><br><span class="line">    var mediaStreamSource = audioContext.createMediaStreamSource(stream);</span><br><span class="line"></span><br><span class="line">    // Connect it to destination to hear yourself</span><br><span class="line">    // or any other node for processing!</span><br><span class="line">    mediaStreamSource.connect(audioContext.destination);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>navigator.getUserMedia({audio:true}, gotStream);<br>基于 Chromium 的应用或扩展也可以使用 getUserMedia 。在安装的时候仅一次添加 audioCapture 和 / 或 videoCapture 权限。此后用户不被询问关于摄像头和麦克风的权限。</p>
+<p>对于使用 HTTPS 的网页也是同样：对于 getUserMedia 只需呀授予一次权限。第一次时，在标签上信息栏上显示允许按钮。</p>
+<p>TODO 同时，Chrome 将不鼓励 getUserMedia() 访问 http，在 2015 年末，在 M44 版本，你可能在访问 HTTP 时看到一个警告。</p>
+<p>最终，不止照相机和麦克风，其他的任何数据流都可以放到 MediaStream 中。可以从硬盘中获取数据流，或者从任何其他传感器或其他输入获取数据。</p>
+<p>注意到 getUserMedia() 必须在服务器上使用，不可以在本地文件中使用。否则会报错。</p>
+<h3 id="屏幕和标签捕获"><a href="#屏幕和标签捕获" class="headerlink" title="屏幕和标签捕获"></a>屏幕和标签捕获</h3><p>Chrome 应用也使得分享一个 video 标签在一个单一的浏览器标签中成为可能，或者整个桌面通过 chrome.tabCapture 和 chrome.desktopCapture 的 APIs 。在  <a href="https://github.com/webrtc/samples/tree/master/src/content/getusermedia/desktopcapture" target="_blank" rel="noopener">这里</a>  可以找到一个桌面 capture 的例子。对于截屏视频，代码和更多的信息查看  <a href="http://updates.html5rocks.com/2012/12/Screensharing-with-WebRTC" target="_blank" rel="noopener">这里</a>  。</p>
+<p>TODO 使用 csreen capture 作为一个 MediaStream 在 chrome 的源也是可能的，其中使用了 chromeMediaSource 约束，看这里  <a href="https://html5-demos.appspot.com/static/getusermedia/screenshare.html" target="_blank" rel="noopener">Demo</a>  ，注意到屏幕抓取需要 HTTPS 并且应该用命令行标记，被 WebRTC 讨论解释。</p>
+<h3 id="Signaling：会话控制，网络和媒体信息"><a href="#Signaling：会话控制，网络和媒体信息" class="headerlink" title="Signaling：会话控制，网络和媒体信息"></a>Signaling：会话控制，网络和媒体信息</h3><p>WebRTC 使用 RTCPeerConnection 在浏览器间传递数据流，但是也需要一个机器协调沟通发送控制 i 信息，这被称为 signaling 过程。Signaling 方法和协议没有被 WebRTC 规定：signaling 不是 RTCPeerConnection 的 API 的一部分。</p>
+<p>相反，WebRTC 应用的开发者可以选择任何一种他们喜欢的消息协议，例如 SIP 或者是 XMPP，或者任何全双工的通信通道。这个  <a href="https://apprtc.appspot.com/" target="_blank" rel="noopener">apprtc.appspot.com</a>  例子使用了 XHR 和 Channel API 作为这个 Signaling。这个  <a href="http://www.bitbucket.org/webrtc/codelab" target="_blank" rel="noopener">Codelab</a>  使用了  <a href="http://socket.io/" target="_blank" rel="noopener">Socket.io</a> ，是一个  <a href="http://nodejs.org/" target="_blank" rel="noopener">Node服务器</a> 。</p>
+<p>Signaling 被使用来交换三种信息：</p>
+<ul>
+<li>连接控制信息：初始化或者关闭连接报告错误。</li>
+<li>网络配置：对于外网，我们电脑的 IP 地址和端口？</li>
+<li>多媒体数据：使用什么编码解码器，浏览器可以处理什么信息？<br>在进行 P2P 数据传输前，这些信息必须全部通过 Signaling 进行交换。</li>
+</ul>
+<p>例如，假设 Alice 想要与 Bob 通信。这是这个  <a href="http://www.w3.org/TR/webrtc/#simple-example" target="_blank" rel="noopener">例子</a>  ，显示了这个过程中 Signaling 的信息。这个代码假设某些信号的存在，在 createSignaling() 方法中创建。也注意到有在 Chrome 和 Opera 上有前缀。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">var signalingChannel = createSignalingChannel();</span><br><span class="line">var pc;</span><br><span class="line">var configuration = …;</span><br><span class="line"></span><br><span class="line">// run start(true) to initiate a call</span><br><span class="line">function start(isCaller) &#123;</span><br><span class="line">    pc = new RTCPeerConnection(configuration);</span><br><span class="line"></span><br><span class="line">    // send any ice candidates to the other peer</span><br><span class="line">    pc.onicecandidate = function (evt) &#123;</span><br><span class="line">        signalingChannel.send(JSON.stringify(&#123; “candidate”: evt.candidate &#125;));</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    // once remote stream arrives, show it in the remote video element</span><br><span class="line">    pc.onaddstream = function (evt) &#123;</span><br><span class="line">        remoteView.src = URL.createObjectURL(evt.stream);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    // get the local stream, show it in the local video element and send it</span><br><span class="line">    navigator.getUserMedia(&#123; “audio”: true, “video”: true &#125;, function (stream) &#123;</span><br><span class="line">        selfView.src = URL.createObjectURL(stream);</span><br><span class="line">        pc.addStream(stream);</span><br><span class="line"></span><br><span class="line">        if (isCaller)</span><br><span class="line">            pc.createOffer(gotDescription);</span><br><span class="line">        else</span><br><span class="line">            pc.createAnswer(pc.remoteDescription, gotDescription);</span><br><span class="line"></span><br><span class="line">        function gotDescription(desc) &#123;</span><br><span class="line">            pc.setLocalDescription(desc);</span><br><span class="line">            signalingChannel.send(JSON.stringify(&#123; “sdp”: desc &#125;));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">signalingChannel.onmessage = function (evt) &#123;</span><br><span class="line">    if (!pc)</span><br><span class="line">        start(false);</span><br><span class="line"></span><br><span class="line">    var signal = JSON.parse(evt.data);</span><br><span class="line">    if (signal.sdp)</span><br><span class="line">        pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));</span><br><span class="line">    else</span><br><span class="line">        pc.addIceCandidate(new RTCIceCandidate(signal.candidate));</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>首先，Alice 和 Bob 交换网络信息。(“finding candidates” 指的是使用  <a href="https://blog.coding.net/blog/getting-started-with-webrtc" target="_blank" rel="noopener">ICE 框架</a> 寻找网络端口)</p>
+<ol>
+<li>Alice 使用 onicecandidate 句柄创建一个 RTCPeerConnection。</li>
+<li>当网络处理程序可用时，句柄运行。</li>
+<li>Alice 向 Bob 发送序列化数据，通过无论那种方式：WebSocket 或者其他方式。</li>
+<li>当 Bob 从 Alice 获取到数据后，调用 addIceCandidate 添加远程节点描述中。</li>
+</ol>
+<p>WebRTC 客户端(被称为 peers，例如 Alice 和 Bob )，也需要交换本地和远程音视频媒体信息，例如使用的协议和编码器。TODO Signaling 来交换信息。</p>
+<ol>
+<li>Alice 执行 RTCPeerConnection 的 createOffer() 方法，这通过 RTCSessionDescription 回调：Alice 本地会话描述。</li>
+<li>在这个回调中，Alice 通过 setLocationDescription() 设置本地描述然后给 Bob 发送阶段描述通过他们的信道。注意到 RTCPeerConnection 直到 setRemoteDescription 被调用才会开始发送数据：在  <a href="http://tools.ietf.org/html/draft-ietf-rtcweb-jsep-03#section-4.2.4" target="_blank" rel="noopener">这里</a>  被确定。</li>
+<li>Bob 将 Alice 发送过来的消息进行设置作为远程信息的描述，通过 setRemoteDescription() 方法。</li>
+<li>Bob 运行 RTCPeerConnection 的 createAnswer() 的方法，通过从 Alice 获取到的描述信息，本地会话可以适配她的。这个 createAnswer() 回调被一个 RTCSessionDescription 回调：Bob 设置本地描述，发送给 Alice。</li>
+<li>当 Alice 获取到了 Bob 的本地描述，通过 setRemoteDescription 设置这个描述信息。</li>
+<li>开始通信。</li>
+</ol>
+<p>RTCSessionDescription 对象符合 SDP，一个 SDP 类似于如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">v=0</span><br><span class="line">o=- 3883943731 1 IN IP4 127.0.0.1</span><br><span class="line">s=</span><br><span class="line">t=0 0</span><br><span class="line">a=group:BUNDLE audio video</span><br><span class="line">m=audio 1 RTP/SAVPF 103 104 0 8 106 105 13 126</span><br><span class="line">// …</span><br><span class="line">a=ssrc:2223794119 label:H4fjnMzxy3dPIgQ7HxuCTLb4wLLLeRHnFxh810</span><br></pre></td></tr></table></figure>
+
+<p>网络和媒体信息的采集和交换可以同时进行，但这两个过程必须完成之前，音频和视频流之间的同龄人可以开始。</p>
+<p>网络信息的采集和交换可以同时进行，但是在发送音频和视频前都需要完成。。</p>
+<p>这个 offer/andwer 被叫做  <a href="http://tools.ietf.org/html/draft-ietf-rtcweb-jsep-00" target="_blank" rel="noopener">JSEP</a>  (JavaScript Session Establishment Protocol)，在[这里]有一个很好的 WebRTC 实现的解释。<br><img src="jsep.png" alt="jsep"></p>
+<p>一旦这个 signaling 完成了，数据可以直接的在端到端之间进行数据传输。如果失败了，通过中介服务器 relay 服务进行转发。Streaming 是 RTCPeerConnection 的工作。</p>
+<h3 id="RTCPeerConnection"><a href="#RTCPeerConnection" class="headerlink" title="RTCPeerConnection"></a>RTCPeerConnection</h3><p>RTCPeerConnection 是 WebRTC 的一部分，它是稳定的有效率的端到端传输数据的句柄。</p>
+<p>下面是一个 WebRTC 的架构，显示了 RTCPeerConnection 的作用，正如你看到的，绿色部分和复杂！</p>
+<p><img src="webrtcArchitecture.png" alt="webrtcArchitecture"></p>
+<p>从 JavaScript 观点看，从图表中主要需要理解 RTCPeerConnection 向开发者屏蔽了底层复杂的东西。WebRTC 使用的协议和解码器做了大量的工作才使得实时通信成为了可能，甚至在不可靠的网络的情况下：</p>
+<ul>
+<li>数据包丢包隐藏</li>
+<li>回声消除</li>
+<li>宽带自适应</li>
+<li>动态抖动缓冲</li>
+<li>TODO 自动增益控制</li>
+<li>降噪</li>
+<li>图片清除</li>
+</ul>
+<p>在  <a href="http://www.html5rocks.com/en/tutorials/webrtc/basics/#simpleRTCPeerConnectionExample" target="_blank" rel="noopener">W3C代码</a>  从 signaling 观点显示了一个简化的例子。下面是两个使用 WebRTC 工作的两个应用，第一个是一个简单的 RTCPeerConnection 的例子；第二个时一个完全的可操作的视频客户端。</p>
+<p>参考：<a href="https://juejin.im/entry/57f9aeedd203090068b18d09" target="_blank" rel="noopener">WebRTC 的前世今生</a></p>
+
+      </div>
+      
+      <footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/webrtc/">webrtc</a>
+            </div>
+        
+        <nav class="post-nav"><a class="next" href="/2019/12/08/mini-pack/">
+        <span class="next-text nav-default">mini-pack</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"></div></div>
+      </main>
+
+      <footer id="footer" class="footer"><div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/ahonn/hexo-theme-even">Even</a>
+  </span>
+
+  <span class="copyright-year">&copy;2020<span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">zzz</span>
+  </span>
+</div>
+</footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
+  <script type="text/javascript" src="/js/src/even.js?v="></script>
+</body>
+</html>
