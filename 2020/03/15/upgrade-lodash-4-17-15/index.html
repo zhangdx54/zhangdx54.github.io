@@ -182,7 +182,9 @@
 <p>这里同样用了无符号右移位运算符来确保 length 为正数或0。<br>截取并返回新数组</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">let index = -1</span><br><span class="line">const result = new Array(length)</span><br><span class="line">while (++index &lt; length) &#123;</span><br><span class="line">  result[index] = array[index + start]</span><br><span class="line">&#125;</span><br><span class="line">return result</span><br></pre></td></tr></table></figure>
 
-<p>result 为新数组容器。<br>用 while 循环，从 start 位置开始，获取原数组的值，依次存入新的数组中。<br>因为是通过索引取值，如果遇到稀疏数组，对应的索引值上没有元素时，通过数组索引取值返回的是 undefined， 但这并不是说稀疏数组中该位置的值为 undefined 。<br>最后将 result 返回。</p>
+<p>result 为新数组容器。</p>
+<p>用 while 循环，从 start 位置开始，获取原数组的值，依次存入新的数组中。<br>因为是通过索引取值，如果遇到稀疏数组，对应的索引值上没有元素时，通过数组索引取值返回的是 undefined， 但这并不是说稀疏数组中该位置的值为 undefined 。<br>最后将 result 返回。</p>
+<p>可以看出，lodash 会处理所有情况，我们自己写方法可能无法做到如此健壮，但lodash的这种思想可以学习</p>
 <p>参考：</p>
 <ol>
 <li>javascript权威指南(第6版), David Flanagan著,淘宝前端团队译,机械工业出版社</li>
@@ -200,7 +202,12 @@
             <a href="/tags/upgrade/">upgrade</a>
             </div>
         
-        <nav class="post-nav"><a class="next" href="/2020/02/26/A-tour-of-computer-system/">
+        <nav class="post-nav"><a class="prev" href="/2020/04/19/mechain-level-representation/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text nav-default">mechain level representation</span>
+        <span class="prev-text nav-mobile">Prev</span>
+      </a>
+    <a class="next" href="/2020/02/26/A-tour-of-computer-system/">
         <span class="next-text nav-default">A tour of computer system</span>
         <span class="prev-text nav-mobile">Next</span>
         <i class="iconfont icon-right"></i>
