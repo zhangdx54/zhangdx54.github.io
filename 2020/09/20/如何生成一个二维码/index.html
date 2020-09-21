@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+<meta name="theme-color" content="#f8f5ec">
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="description" content="如何生成一个二维码"><meta name="keywords" content="javascript, zzz"><link rel="alternate" href="/atom.xml" title="zzz">
+<link rel="canonical" href="http://yoursite.com/2020/09/20/如何生成一个二维码/">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=">
+
+<script id="baidu_push">
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<script>
+  window.config = {"leancloud":"","toc":"","fancybox":"","pjax":"","latex":""};
+</script>
+
+    <title>如何生成一个二维码 - zzz</title>
+  </head>
+
+  <body><div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/." class="logo">zzz</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list"></ul>
+</nav>
+<div class="container" id="mobile-panel">
+      <header id="header" class="header"><div class="logo-wrapper">
+  <a href="/." class="logo">zzz</a>
+</div>
+
+<nav class="site-navbar"></nav>
+</header>
+
+      <main id="main" class="main">
+        <div class="content-wrapper">
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">如何生成一个二维码
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2020-09-20
+        </span></div>
+    </header>
+
+    <div class="post-content"><p>上篇博客 我们了解了二维码的历史 由来 各种强大之处，以及细致入微的 如何一步一步 生成一张包含信息的黑白格子图片的，仔细看下来 特别震撼的感觉，这篇博客 接着自上一篇 我们撸起袖子 来看看 怎么实现</p>
+<p>把大象装冰箱 可以分三步，那么 生成一个二维码 要分几步呢？</p>
+<h3>第一步：分析输入字符编码集</h3>
+<p>上回说到，二维码是日本人发明的，每个字符的编码目标有四种：数字、字母、比特和日文。比如我们的输入 <code>Hello,world! 123</code>， 包含 字母 数字 和特殊符号，显而易见 我们只能选 比特 编码。</p>
+<h3>第二步：创建编码数据</h3>
+<p>这一步 需要将每一个输入的字符 转换成二进制，直接用 字符对应的 ascii 码对应的值，转换成二进制就好了,</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Char</th>
+<th>values(hex)</th>
+<th>Bits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>H</td>
+<td>48</td>
+<td>01001000</td>
+</tr>
+<tr>
+<td>1</td>
+<td>e</td>
+<td>65</td>
+<td>01100101</td>
+</tr>
+</tbody>
+</table>
+<p>...</p>
+<p>这样一顿操作之后呢，我们会得到 如下信息
+	•	模式: Byte
+	•	数量: 17 bytes
+	•	数据: 136 bits long</p>
+<p>大概是这样一坨：
+0100100001100101011011000110110001101111001011000010
+0000011101110110111101110010011011000110010000100001
+00100000001100010011001000110011</p>
+<p><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>, l = <span class="keyword">this</span>.data.length; i &lt; l; i++) &#123;</span><br><span class="line">      <span class="keyword">var</span> byteArray = [];</span><br><span class="line">      <span class="keyword">var</span> code = <span class="keyword">this</span>.data.charCodeAt(i);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (code &gt; <span class="number">0x10000</span>) &#123;</span><br><span class="line">        byteArray[<span class="number">0</span>] = <span class="number">0xf0</span> | ((code &amp; <span class="number">0x1c0000</span>) &gt;&gt;&gt; <span class="number">18</span>);</span><br><span class="line">        byteArray[<span class="number">1</span>] = <span class="number">0x80</span> | ((code &amp; <span class="number">0x3f000</span>) &gt;&gt;&gt; <span class="number">12</span>);</span><br><span class="line">        byteArray[<span class="number">2</span>] = <span class="number">0x80</span> | ((code &amp; <span class="number">0xfc0</span>) &gt;&gt;&gt; <span class="number">6</span>);</span><br><span class="line">        byteArray[<span class="number">3</span>] = <span class="number">0x80</span> | (code &amp; <span class="number">0x3f</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (code &gt; <span class="number">0x800</span>) &#123;</span><br><span class="line">        byteArray[<span class="number">0</span>] = <span class="number">0xe0</span> | ((code &amp; <span class="number">0xf000</span>) &gt;&gt;&gt; <span class="number">12</span>);</span><br><span class="line">        byteArray[<span class="number">1</span>] = <span class="number">0x80</span> | ((code &amp; <span class="number">0xfc0</span>) &gt;&gt;&gt; <span class="number">6</span>);</span><br><span class="line">        byteArray[<span class="number">2</span>] = <span class="number">0x80</span> | (code &amp; <span class="number">0x3f</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (code &gt; <span class="number">0x80</span>) &#123;</span><br><span class="line">        byteArray[<span class="number">0</span>] = <span class="number">0xc0</span> | ((code &amp; <span class="number">0x7c0</span>) &gt;&gt;&gt; <span class="number">6</span>);</span><br><span class="line">        byteArray[<span class="number">1</span>] = <span class="number">0x80</span> | (code &amp; <span class="number">0x3f</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        byteArray[<span class="number">0</span>] = code;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">this</span>.parsedData.push(byteArray);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<h3>第三步：找到合适的版本型号 确定纠错码</h3>
+<p>这一步主要是要根据上一步计算出来的数据，比如二维码容量，来确定选择哪个版本型号和纠错级别
+如下代码，根据 纠错码级别 和 输入字符长度计算 合适版本号，如果结果太长 直接抛错</p>
+<p><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>, len = QRCodeLimitLength.length; i &lt;= len; i++) &#123;</span><br><span class="line">      <span class="keyword">var</span> nLimit = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">switch</span> (nCorrectLevel) &#123;</span><br><span class="line">        <span class="keyword">case</span> QRErrorCorrectLevel.L:</span><br><span class="line">          nLimit = QRCodeLimitLength[i][<span class="number">0</span>];</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> QRErrorCorrectLevel.M:</span><br><span class="line">          nLimit = QRCodeLimitLength[i][<span class="number">1</span>];</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> QRErrorCorrectLevel.Q:</span><br><span class="line">          nLimit = QRCodeLimitLength[i][<span class="number">2</span>];</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> QRErrorCorrectLevel.H:</span><br><span class="line">          nLimit = QRCodeLimitLength[i][<span class="number">3</span>];</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (length &lt;= nLimit) &#123;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        nType++;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (nType &gt; QRCodeLimitLength.length) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">"Too long data"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> nType;</span><br></pre></td></tr></table></figure></p>
+<h3>第四步：已有信息拼成 编码字</h3>
+<p>首先是 固定四子节的开头0010 + 根据版本和模式计算出来的数量值 00010001 + 数据段（那么一坨）+ 通常是 0000 组成的结尾 + 剩余直接用 0 填充。</p>
+<p>所以 这样一套下来呢，二进制变成这样：01000001000101001000011001010110110001101100011011110
+01011000010000001110111011011110111001001101100011001
+0000100001001000000011000100110010001100110000</p>
+<p>然后，将上面的二进制 用十六进制表示（每八个字节分成一组，再转换）：41 14 86 56 C6 C6 F2 C2 07 76 F7 26 C6 42 12 03 13 23 30</p>
+<p>好了 可以进入下一阶段啦！</p>
+<h3>第五步：切块 计算接错码 纵横交错</h3>
+<p>这里用到了上一篇提到的 超级厉害的 里德-所罗门码。
+具体计算方法我们在上一节说的很详细了，这里不再详细赘述
+根据 41 14 86 56 C6 C6 F2 C2 07 76 F7 26 C6 42 12 03 13 23 30
+可计算出纠错码为： 85 A9 5E 07 0A 36 C9</p>
+<p>将 数据 与 纠错码 合并后 转换成二进制，我们就得到了 可以绘制二维码的主要信息啦
+010000010001010010000110010101101100011011000110111100
+101100001000000111011101101111011100100110110001100100
+001000010010000000110001001100100011001100001000010110
+1010010101111000000111000010100011011011001001</p>
+<h3>第六步：画定位轴</h3>
+<p>先来一横一竖，再来三个回字形定位（7 * 7） 嗯 差不多了
+这里会具体根据绘制的场地大小 计算每个小格子的宽高</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">Drawing.prototype.draw = function (oQRCode) &#123;</span><br><span class="line">          var _elImage = this._elImage;</span><br><span class="line">          var _oContext = this._oContext;</span><br><span class="line">          var _htOption = this._htOption;</span><br><span class="line"></span><br><span class="line">          var nCount = oQRCode.getModuleCount();</span><br><span class="line">          var nWidth = _htOption.width / nCount;</span><br><span class="line">          var nHeight = _htOption.height / nCount;</span><br><span class="line">          var nRoundedWidth = Math.round(nWidth);</span><br><span class="line">          var nRoundedHeight = Math.round(nHeight);</span><br><span class="line"></span><br><span class="line">          _elImage.style.display = &quot;none&quot;;</span><br><span class="line">          this.clear();</span><br><span class="line"></span><br><span class="line">          for (var row = 0; row &lt; nCount; row++) &#123;</span><br><span class="line">            for (var col = 0; col &lt; nCount; col++) &#123;</span><br><span class="line">              var bIsDark = oQRCode.isDark(row, col);</span><br><span class="line">              var nLeft = col * nWidth;</span><br><span class="line">              var nTop = row * nHeight;</span><br><span class="line">              _oContext.strokeStyle = bIsDark</span><br><span class="line">                ? _htOption.colorDark</span><br><span class="line">                : _htOption.colorLight;</span><br><span class="line">              _oContext.lineWidth = 1;</span><br><span class="line">              _oContext.fillStyle = bIsDark</span><br><span class="line">                ? _htOption.colorDark</span><br><span class="line">                : _htOption.colorLight;</span><br><span class="line">              _oContext.fillRect(nLeft, nTop, nWidth, nHeight);</span><br><span class="line">					</span><br><span class="line">					_oContext.strokeRect(</span><br><span class="line">                Math.floor(nLeft) + 0.5,</span><br><span class="line">                Math.floor(nTop) + 0.5,</span><br><span class="line">                nRoundedWidth,</span><br><span class="line">                nRoundedHeight</span><br><span class="line">              );</span><br><span class="line"></span><br><span class="line">              _oContext.strokeRect(</span><br><span class="line">                Math.ceil(nLeft) - 0.5,</span><br><span class="line">                Math.ceil(nTop) - 0.5,</span><br><span class="line">                nRoundedWidth,</span><br><span class="line">                nRoundedHeight</span><br><span class="line">              );</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          this._bIsPainted = true;</span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure></p>
+<p><img src="1.png" alt="定位轴"></p>
+<p>继续啊</p>
+<h3>第七步：填充字码</h3>
+<p>肉眼可见的 即将大功完成
+将上面用二维码表示出来的 二维码信息 继续填到，上一步画出来的架子里 画 z 型字，从右下角开始，左上角结束</p>
+<p><img src="2.png" alt="z字形"></p>
+<p>接着 按照z 字形顺序 依次填入 第五步计算出来的 二进制信息 1 黑格子 2 白格子</p>
+<p><img src="3.png" alt="最终效果图"></p>
+<p>结束了吗？ 没有，机器会根据当前生成的二维码，继续优化，找到 大量空白 和 小黑格子聚集的地方，比如横向纵向 两个方向连续 5 个相同颜色区域， 2 * 2 相同颜色地方</p>
+<p>下面两个函数相互调用 不断优化计算出来的二进制信息，最终生成一个看着很顺溜的二维码图像</p>
+<p><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">getBestMaskPattern: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">var</span> minLostPoint = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">var</span> pattern = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="number">8</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">this</span>.makeImpl(<span class="literal">true</span>, i);</span><br><span class="line">        <span class="keyword">var</span> lostPoint = QRUtil.getLostPoint(<span class="keyword">this</span>);</span><br><span class="line">        <span class="keyword">if</span> (i == <span class="number">0</span> || minLostPoint &gt; lostPoint) &#123;</span><br><span class="line">          minLostPoint = lostPoint;</span><br><span class="line">          pattern = i;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> pattern;</span><br><span class="line">    &#125;,</span><br><span class="line">  </span><br><span class="line">  make: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.makeImpl(<span class="literal">false</span>, <span class="keyword">this</span>.getBestMaskPattern());</span><br><span class="line">    &#125;,</span><br></pre></td></tr></table></figure></p>
+<p><a href="https://github.com/davidshimjs/qrcodejs" target="_blank" rel="noopener">github:qrcode</a></p>
+
+      </div>
+      
+      <footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/javascript/">javascript</a>
+            </div>
+        
+        <nav class="post-nav"><a class="next" href="/2020/08/24/神奇的二维码/">
+        <span class="next-text nav-default">神奇的二维码</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"></div></div>
+      </main>
+
+      <footer id="footer" class="footer"><div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/ahonn/hexo-theme-even">Even</a>
+  </span>
+
+  <span class="copyright-year">&copy;2020<span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">zzz</span>
+  </span>
+</div>
+</footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
+  <script type="text/javascript" src="/js/src/even.js?v="></script>
+</body>
+</html>

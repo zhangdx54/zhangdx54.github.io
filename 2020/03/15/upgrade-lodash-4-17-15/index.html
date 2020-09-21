@@ -81,47 +81,50 @@
 <thead>
 <tr>
 <th>API</th>
-<th align="right">changes</th>
+<th style="text-align:right">changes</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>pick</td>
-<td align="right">pick &amp;&amp; pickBy</td>
+<td style="text-align:right">pick &amp;&amp; pickBy</td>
 </tr>
 <tr>
 <td>isEqual</td>
-<td align="right">只剩前两个参数</td>
+<td style="text-align:right">只剩前两个参数</td>
 </tr>
 <tr>
 <td>uniq</td>
-<td align="right">uniq &amp;&amp; uniqBy</td>
+<td style="text-align:right">uniq &amp;&amp; uniqBy</td>
 </tr>
 <tr>
 <td>flatten</td>
-<td align="right">flatten &amp;&amp; flattenDeep</td>
+<td style="text-align:right">flatten &amp;&amp; flattenDeep</td>
 </tr>
 <tr>
 <td>clone</td>
-<td align="right">clone &amp;&amp; cloneDeep &amp;&amp; cloneDeepWith &amp;&amp; cloneWith</td>
+<td style="text-align:right">clone &amp;&amp; cloneDeep &amp;&amp; cloneDeepWith &amp;&amp; cloneWith</td>
 </tr>
 <tr>
 <td>find</td>
-<td align="right">第三个参数 this.arg =&gt; fromIndex</td>
+<td style="text-align:right">第三个参数 this.arg =&gt; fromIndex</td>
 </tr>
 <tr>
 <td>sum</td>
-<td align="right">sum &amp;&amp; sumBy</td>
+<td style="text-align:right">sum &amp;&amp; sumBy</td>
 </tr>
 <tr>
 <td>indexBy</td>
-<td align="right">keyBy</td>
+<td style="text-align:right">keyBy</td>
 </tr>
 <tr>
 <td>pluck</td>
-<td align="right">map</td>
+<td style="text-align:right">map</td>
 </tr>
-</tbody></table>
-<p> 下面是一些移除掉 this.args 参数变动的API<br>remove this.args</p>
+</tbody>
+</table>
+<p>下面是一些移除掉 this.args 参数变动的API
+remove this.args</p>
 <ul>
 <li>forIn</li>
 <li>findIndex</li>
@@ -131,67 +134,84 @@
 <li>groupBy</li>
 <li>reduce</li>
 </ul>
-<p>砍掉多余参数的API（只剩前两个参数）<br>merge<br>assign</p>
-<p>这是官方给出的一个弃用方法表，唯一的缺点是不全<br><a href="https://github.com/lodash/lodash/wiki/Deprecations" target="_blank" rel="noopener">https://github.com/lodash/lodash/wiki/Deprecations</a></p>
-<p>还有 感谢大家伙一起帮忙整理的一份lodash变动表，<a href="https://shimo.im/sheets/PTjvRkqtgyDX98cX" target="_blank" rel="noopener">https://shimo.im/sheets/PTjvRkqtgyDX98cX</a></p>
+<p>砍掉多余参数的API（只剩前两个参数）
+merge
+assign</p>
+<p>这是官方给出的一个弃用方法表，唯一的缺点是不全
+https://github.com/lodash/lodash/wiki/Deprecations</p>
+<p>还有 感谢大家伙一起帮忙整理的一份lodash变动表，https://shimo.im/sheets/PTjvRkqtgyDX98cX</p>
 <p>简短说完升级（有点坑，官方提供的东西都不好用 全是体力活），为什么我们还离不开lodash呢？又重型臃肿，API 又多etc，但是看看lodash 源码，很优雅健壮。下面说说 lodash/slice</p>
 <p>你可能会有点奇怪，原生的 slice 方法基本没有兼容性的问题，为什么 lodash 还要实现一个 slice 方法呢？</p>
-<p>这个问题，lodash 的作者已经在 why not the ‘baseslice’ func use Array.slice(), loop faster than slice? 的 issue 中给出了答案：lodash 的 slice 会将数组当成密集数组对待，原生的 slice 会将数组当成稀疏数组对待。</p>
-<h3 id="密集数组VS稀疏数组"><a href="#密集数组VS稀疏数组" class="headerlink" title="密集数组VS稀疏数组"></a>密集数组VS稀疏数组</h3><p>我们先来看看犀牛书是怎样定义稀疏数组的：</p>
+<p>这个问题，lodash 的作者已经在 why not the 'baseslice' func use Array.slice(), loop faster than slice? 的 issue 中给出了答案：lodash 的 slice 会将数组当成密集数组对待，原生的 slice 会将数组当成稀疏数组对待。</p>
+<h3>密集数组VS稀疏数组</h3>
+<p>我们先来看看犀牛书是怎样定义稀疏数组的：</p>
 <blockquote>
 <p>稀疏数组就是包含从0开始的不连续索引的数组。通常，数组的length属性值代表数组中元素的个数。如果数组是稀疏的，length属性值大于元素的个数。</p>
 </blockquote>
-<p>如果数组是稀疏的，那么这个数组中至少有一个以上的位置不存在元素（包括 undefined ）。<br>例如：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">var sparse = new Array(10)</span><br><span class="line">var dense = new Array(10).fill(undefined)</span><br></pre></td></tr></table></figure>
-
-<p>其中 sparse 的 length 为10，但是 sparse 数组中没有元素，是稀疏数组；而 dense 每个位置都是有元素的，虽然每个元素都为undefined，为密集数组 。<br>那稀疏数组和密集数组有什么区别呢？在 lodash 中最主要考虑的是两者在迭代器中的表现。<br>稀疏数组在迭代的时候会跳过不存在的元素。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sparse.forEach(function(item)&#123;</span><br><span class="line">  console.log(item)</span><br><span class="line">&#125;)</span><br><span class="line">dense.forEach(function(item)&#123;</span><br><span class="line">  console.log(item)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>sparse 根本不会调用 console.log 打印任何东西，但是 dense 会打印出10个 undefined 。</p>
-<h3 id="源码总览"><a href="#源码总览" class="headerlink" title="源码总览"></a>源码总览</h3><p>当然，除了对待稀疏数组跟原生的 slice 不一致外，其他的规则还是一样的，下面是 lodash 实现 slice 的源码。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">function slice(array, start, end) &#123;</span><br><span class="line">  let length = array == null ? 0 : array.length</span><br><span class="line">  if (!length) &#123;</span><br><span class="line">    return []</span><br><span class="line">  &#125;</span><br><span class="line">  start = start == null ? 0 : start</span><br><span class="line">  end = end === undefined ? length : end</span><br><span class="line"></span><br><span class="line">  if (start &lt; 0) &#123;</span><br><span class="line">    start = -start &gt; length ? 0 : (length + start)</span><br><span class="line">  &#125;</span><br><span class="line">  end = end &gt; length ? length : end</span><br><span class="line">  if (end &lt; 0) &#123;</span><br><span class="line">    end += length</span><br><span class="line">  &#125;</span><br><span class="line">  length = start &gt; end ? 0 : ((end - start) &gt;&gt;&gt; 0)</span><br><span class="line">  start &gt;&gt;&gt;= 0</span><br><span class="line"></span><br><span class="line">  let index = -1</span><br><span class="line">  const result = new Array(length)</span><br><span class="line">  while (++index &lt; length) &#123;</span><br><span class="line">    result[index] = array[index + start]</span><br><span class="line">  &#125;</span><br><span class="line">  return result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="不传参的情况"><a href="#不传参的情况" class="headerlink" title="不传参的情况"></a>不传参的情况</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">let length = array == null ? 0 : array.length</span><br><span class="line">if (!length) &#123;</span><br><span class="line">  return []</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>不传参时，length 默认为0，否则获取数组的长度。注意这里用的是 array == null ，非 array === null ，包含了 undefined 的判断。</p>
+<p>如果数组是稀疏的，那么这个数组中至少有一个以上的位置不存在元素（包括 undefined ）。
+例如：
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">var sparse = new Array(10)</span><br><span class="line">var dense = new Array(10).fill(undefined)</span><br></pre></td></tr></table></figure></p>
+<p>其中 sparse 的 length 为10，但是 sparse 数组中没有元素，是稀疏数组；而 dense 每个位置都是有元素的，虽然每个元素都为undefined，为密集数组 。
+那稀疏数组和密集数组有什么区别呢？在 lodash 中最主要考虑的是两者在迭代器中的表现。
+稀疏数组在迭代的时候会跳过不存在的元素。
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sparse.forEach(function(item)&#123;</span><br><span class="line">  console.log(item)</span><br><span class="line">&#125;)</span><br><span class="line">dense.forEach(function(item)&#123;</span><br><span class="line">  console.log(item)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>sparse 根本不会调用 console.log 打印任何东西，但是 dense 会打印出10个 undefined 。</p>
+<h3>源码总览</h3>
+<p>当然，除了对待稀疏数组跟原生的 slice 不一致外，其他的规则还是一样的，下面是 lodash 实现 slice 的源码。
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">function slice(array, start, end) &#123;</span><br><span class="line">  let length = array == null ? 0 : array.length</span><br><span class="line">  if (!length) &#123;</span><br><span class="line">    return []</span><br><span class="line">  &#125;</span><br><span class="line">  start = start == null ? 0 : start</span><br><span class="line">  end = end === undefined ? length : end</span><br><span class="line"></span><br><span class="line">  if (start &lt; 0) &#123;</span><br><span class="line">    start = -start &gt; length ? 0 : (length + start)</span><br><span class="line">  &#125;</span><br><span class="line">  end = end &gt; length ? length : end</span><br><span class="line">  if (end &lt; 0) &#123;</span><br><span class="line">    end += length</span><br><span class="line">  &#125;</span><br><span class="line">  length = start &gt; end ? 0 : ((end - start) &gt;&gt;&gt; 0)</span><br><span class="line">  start &gt;&gt;&gt;= 0</span><br><span class="line"></span><br><span class="line">  let index = -1</span><br><span class="line">  const result = new Array(length)</span><br><span class="line">  while (++index &lt; length) &#123;</span><br><span class="line">    result[index] = array[index + start]</span><br><span class="line">  &#125;</span><br><span class="line">  return result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3>不传参的情况</h3>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">let length = array == null ? 0 : array.length</span><br><span class="line">if (!length) &#123;</span><br><span class="line">  return []</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>不传参时，length 默认为0，否则获取数组的长度。注意这里用的是 array == null ，非 array === null ，包含了 undefined 的判断。</p>
 <p>所以在不传参调用 lodash 的 slice 时，返回的是空数组，而原生的 slice 没有这种调用方式。</p>
-<h3 id="处理start参数"><a href="#处理start参数" class="headerlink" title="处理start参数"></a>处理start参数</h3><p>start 参数用来指定截取的开始位置。</p>
+<h3>处理start参数</h3>
+<p>start 参数用来指定截取的开始位置。</p>
 <p>先来看下 MDN 对该参数的描述：</p>
 <blockquote>
-<p>如果该参数为负数，则表示从原数组中的倒数第几个元素开始提取。<br>如果省略，则从索引0开始</p>
+<p>如果该参数为负数，则表示从原数组中的倒数第几个元素开始提取。
+如果省略，则从索引0开始</p>
 </blockquote>
-<p><code>start = start == null ? 0 : start</code><br>因此这段是处理省略的情况，省略时，默认值为0。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (start &lt; 0) &#123;</span><br><span class="line">  start = -start &gt; length ? 0 : (length + start)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这段是处理负数的情况。<br>如果负数取反后比数组的长度还要大，即超出了数组的范围，则取值为0，表示从开始的位置截取，否则用 length + start ，即向后倒数。<br><code>start &gt;&gt;&gt;= 0</code></p>
-<p>最后，用在 &gt;&gt;&gt; 来确保 start 参数为整数或0。</p>
-<p>因为 lodash 的 slice 除了可以处理数组外，也可以处理类数组，因此第一个参数 array 可能为一个对象， length 属性不一定为数字。</p>
-<h3 id="处理end参数"><a href="#处理end参数" class="headerlink" title="处理end参数"></a>处理end参数</h3><p>end 参数用来指定截取的结束位置。<br>同样来看下 MDN 对些的描述：</p>
+<p><code>start = start == null ? 0 : start</code>
+因此这段是处理省略的情况，省略时，默认值为0。
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (start &lt; 0) &#123;</span><br><span class="line">  start = -start &gt; length ? 0 : (length + start)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这段是处理负数的情况。
+如果负数取反后比数组的长度还要大，即超出了数组的范围，则取值为0，表示从开始的位置截取，否则用 length + start ，即向后倒数。
+<code>start &gt;&gt;&gt;= 0</code></p>
+<p>最后，用在 &gt;&gt;&gt; 来确保 start 参数为整数或0。</p>
+<p>因为 lodash 的 slice 除了可以处理数组外，也可以处理类数组，因此第一个参数 array 可能为一个对象， length 属性不一定为数字。</p>
+<h3>处理end参数</h3>
+<p>end 参数用来指定截取的结束位置。
+同样来看下 MDN 对些的描述：</p>
 <blockquote>
-<p>如果该参数为负数，则它表示在原数组中的倒数第几个元素结束制取。<br>如果end被省略，则slice会一直提取到原数组的末尾。<br>如果end大于数组长度，slice也会一直提取到原数组末尾。</p>
+<p>如果该参数为负数，则它表示在原数组中的倒数第几个元素结束制取。
+如果end被省略，则slice会一直提取到原数组的末尾。
+如果end大于数组长度，slice也会一直提取到原数组末尾。</p>
 </blockquote>
 <p><code>end = end === undefined ? length : end</code></p>
-<p>这段是处理 end 被省略的情况，省略时，end 默认为为 length，即截取到数组的末尾。<br><code>end = end &gt; length ? length : end</code></p>
-<p>这是处理 end 比数组长度大的情况，如果被数组长度大，也会截取到数组的末尾。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (end &lt; 0) &#123;</span><br><span class="line">  end += length</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这段是处理负值的情况，如果为负值，则从数组末尾开始向前倒数。<br>这里没有像 start 一样控制 end 的向前倒数完后是否为负数，因为后面还有一层控制。</p>
-<p>获取新数组的长度<br><code>length = start &gt; end ? 0 : ((end - start) &gt;&gt;&gt; 0)</code></p>
-<p>新数组的长度计算方式很简单，就是用 edn - start 即可得出。</p>
-<p>上面说到，没有控制最终 end 是否为负数的情况。这里用的是 start 和 end 的比较，如果 start 比 end 大，则新数组长度为0，即返回一个空数组。否则用 end - start 来计算。</p>
-<p>这里同样用了无符号右移位运算符来确保 length 为正数或0。<br>截取并返回新数组</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">let index = -1</span><br><span class="line">const result = new Array(length)</span><br><span class="line">while (++index &lt; length) &#123;</span><br><span class="line">  result[index] = array[index + start]</span><br><span class="line">&#125;</span><br><span class="line">return result</span><br></pre></td></tr></table></figure>
-
-<p>result 为新数组容器。</p>
-<p>用 while 循环，从 start 位置开始，获取原数组的值，依次存入新的数组中。<br>因为是通过索引取值，如果遇到稀疏数组，对应的索引值上没有元素时，通过数组索引取值返回的是 undefined， 但这并不是说稀疏数组中该位置的值为 undefined 。<br>最后将 result 返回。</p>
+<p>这段是处理 end 被省略的情况，省略时，end 默认为为 length，即截取到数组的末尾。
+<code>end = end &gt; length ? length : end</code></p>
+<p>这是处理 end 比数组长度大的情况，如果被数组长度大，也会截取到数组的末尾。
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (end &lt; 0) &#123;</span><br><span class="line">  end += length</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这段是处理负值的情况，如果为负值，则从数组末尾开始向前倒数。
+这里没有像 start 一样控制 end 的向前倒数完后是否为负数，因为后面还有一层控制。</p>
+<p>获取新数组的长度
+<code>length = start &gt; end ? 0 : ((end - start) &gt;&gt;&gt; 0)</code></p>
+<p>新数组的长度计算方式很简单，就是用 edn - start 即可得出。</p>
+<p>上面说到，没有控制最终 end 是否为负数的情况。这里用的是 start 和 end 的比较，如果 start 比 end 大，则新数组长度为0，即返回一个空数组。否则用 end - start 来计算。</p>
+<p>这里同样用了无符号右移位运算符来确保 length 为正数或0。
+截取并返回新数组
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">let index = -1</span><br><span class="line">const result = new Array(length)</span><br><span class="line">while (++index &lt; length) &#123;</span><br><span class="line">  result[index] = array[index + start]</span><br><span class="line">&#125;</span><br><span class="line">return result</span><br></pre></td></tr></table></figure></p>
+<p>result 为新数组容器。</p>
+<p>用 while 循环，从 start 位置开始，获取原数组的值，依次存入新的数组中。
+因为是通过索引取值，如果遇到稀疏数组，对应的索引值上没有元素时，通过数组索引取值返回的是 undefined， 但这并不是说稀疏数组中该位置的值为 undefined 。
+最后将 result 返回。</p>
 <p>可以看出，lodash 会处理所有情况，我们自己写方法可能无法做到如此健壮，但lodash的这种思想可以学习</p>
 <p>参考：</p>
 <ol>
 <li>javascript权威指南(第6版), David Flanagan著,淘宝前端团队译,机械工业出版社</li>
-<li><a href="https://github.com/lodash/lodash/issues/2850" target="_blank" rel="noopener">why not the ‘baseslice’ func use Array.slice(), loop faster than slice?</a> </li>
-<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/slice" target="_blank" rel="noopener">Array.prototype.slice()</a> </li>
-<li><a href="http://2ality.com/2012/06/dense-arrays.html" target="_blank" rel="noopener">JavaScript: sparse arrays vs. dense arrays</a> </li>
-<li><a href="http://www.cnblogs.com/ziyunfei/archive/2012/09/16/2687165.html" target="_blank" rel="noopener">[译]JavaScript中的稀疏数组与密集数组</a> </li>
+<li><a href="https://github.com/lodash/lodash/issues/2850" target="_blank" rel="noopener">why not the ‘baseslice’ func use Array.slice(), loop faster than slice?</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/slice" target="_blank" rel="noopener">Array.prototype.slice()</a></li>
+<li><a href="http://2ality.com/2012/06/dense-arrays.html" target="_blank" rel="noopener">JavaScript: sparse arrays vs. dense arrays</a></li>
+<li><a href="http://www.cnblogs.com/ziyunfei/archive/2012/09/16/2687165.html" target="_blank" rel="noopener">[译]JavaScript中的稀疏数组与密集数组</a></li>
 <li><a href="yeyuqiudeng.gitbooks.io/pocket-lodash/content/slice.html">读lodash源码之从slice看稀疏数组与密集数组</a></li>
 </ol>
 
