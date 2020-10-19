@@ -75,115 +75,116 @@
         </span></div>
     </header>
 
-    <div class="post-content"><p>cherry-pick 是一个非常常见的 git 操作，可以将一个分支上的 commit “精选”到另一个分支上，然而在最近的一次gray-release 分支合回 master分支的时候，遇到了非常多的冲突，主要原因是从 mater pick 一个较大 commit 到 integration 分支，然后 integration 分支上修改了 pick 的部分代码，最后将integration 分支合回master的时候遇到的众多冲突，都需要一个一个手动解决，非常麻烦且不稳妥。</p>
-<p>接下来 咱们一起看下 为什么说 cherry-pick 不好，用 merge 操作可以达到相同的目的，以及更深层的原因。</p>
-<p>通过具体例子看下 cherry-pick 造成冲突的详细原因，以及可能造成的更严重问题。</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apple   apple   berry</span><br><span class="line">A   --  M1 ---- M2  &lt;- master</span><br><span class="line">  \            /</span><br><span class="line">   F1 ------- F2  &lt;- feature</span><br><span class="line">   apple      berry</span><br></pre></td></tr></table></figure></p>
-<p>如图：为了执行cherry-pick 操作，需要有两个分支，一个 master 分支，及一个 feature 分支，本例中 我们只关注一行代码的变动，初始值 apple。在此基础上有如下操作：
-	* 	从 master 分支 checkout 出来了 feature 分支
-	•	在 feature 分支进行了 F1 提交，在 master 分支进行了 M1 提交，这些提交都与 apple 这行代码无关
-	•	在 feature 分支进行了 F2 提交，将 apple 修改为 berry
-	•	我们将 F2 提交 cherry-pick 到 master 分支（以虚线表示一次 cherry-pick）</p>
-<p>现在 feature 和 master 分支上这一行代码都是 berry。</p>
-<p>当最后我们将 feature 分支正式往 master 合并的时候，可能出现三种情况：
-	1.	这一行代码在两个分支上都没有再修改过，顺利合并
-	2.	这一行代码之后在两个分支上又有了修改，结果出现了冲突（⚠️解决冲突很麻烦）
-	3.	这一行代码之后在两个分支上又有了修改，没有冲突，顺利合并（❌但是可能导致更严重的错误）</p>
+    <div class="post-content"><p>  cherry-pick 是一个非常常见的 git 操作，可以将一个分支上的 commit “精选”到另一个分支上，然而在最近的一次gray-release 分支合回 master分支的时候，遇到了非常多的冲突，主要原因是从 mater pick 一个较大 commit 到 integration 分支，然后 integration 分支上修改了 pick 的部分代码，最后将integration 分支合回master的时候遇到的众多冲突，都需要一个一个手动解决，非常麻烦且不稳妥。</p>
+<p>  接下来 咱们一起看下 为什么说 cherry-pick 不好，用 merge 操作可以达到相同的目的，以及更深层的原因。</p>
+<p>  通过具体例子看下 cherry-pick 造成冲突的详细原因，以及可能造成的更严重问题。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apple   apple   berry</span><br><span class="line">A   --  M1 ---- M2  &lt;- master</span><br><span class="line">  \            /</span><br><span class="line">   F1 ------- F2  &lt;- feature</span><br><span class="line">   apple      berry</span><br></pre></td></tr></table></figure>
+
+<p> 如图：为了执行cherry-pick 操作，需要有两个分支，一个 master 分支，及一个 feature 分支，本例中 我们只关注一行代码的变动，初始值 apple。在此基础上有如下操作：<br>    *     从 master 分支 checkout 出来了 feature 分支<br>    •    在 feature 分支进行了 F1 提交，在 master 分支进行了 M1 提交，这些提交都与 apple 这行代码无关<br>    •    在 feature 分支进行了 F2 提交，将 apple 修改为 berry<br>    •    我们将 F2 提交 cherry-pick 到 master 分支（以虚线表示一次 cherry-pick）</p>
+<p>现在 feature 和 master 分支上这一行代码都是 berry。</p>
+<p>当最后我们将 feature 分支正式往 master 合并的时候，可能出现三种情况：<br>    1.    这一行代码在两个分支上都没有再修改过，顺利合并<br>    2.    这一行代码之后在两个分支上又有了修改，结果出现了冲突（⚠️解决冲突很麻烦）<br>    3.    这一行代码之后在两个分支上又有了修改，没有冲突，顺利合并（❌但是可能导致更严重的错误）</p>
 <p><strong>1. 这一行代码在两个分支上都没有在修改过，顺利合并</strong></p>
 <p>这是最理想的情况，不做分析。</p>
-<p><strong>2. 这一行代码之后在两个分支上又有了修改，结果出现了冲突</strong>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apple   apple   berry     berry</span><br><span class="line">A   --  M1 ---- M2  ----- M3 ---- boom &lt;- master</span><br><span class="line">  \            /pick              /</span><br><span class="line">   F1 ------- F2 --------------- F3    &lt;- feature</span><br><span class="line">   apple      berry              cherry</span><br></pre></td></tr></table></figure></p>
-<p>如上图所示，在 cherry-pick 之后，我们又进行了如下操作：
-	•	在 master 分支进行了 M3 提交，该提交并未修改 berry 这行代码
-	•	在 feature 分支进行了 F3 提交，将 berry 修改为了 cherry
-	•	尝试将 feature 分支往 master 合并：⚠️冲突发生</p>
-<p>分析：合并时，M3 和 F3 的最近公共祖先（merge base）是 commit A，这行代码为 apple，然后对比发现，master 分支上这行代码由 apple 变成了 berry，feature 分支上这行代码由 apple 变成了 cherry，所以冲突出现了。</p>
-<p>如果我们使用的是 merge 呢？那 M2 到 F2 将是一条实线，M3 和 F3的最近公共祖先（merge base）会是 F2，master 上：berry -&gt; berry，feature 上 berry -&gt; cherry，因为 master 分支相对 F2没有修改，所以就没有冲突。</p>
+<p><strong>2. 这一行代码之后在两个分支上又有了修改，结果出现了冲突</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apple   apple   berry     berry</span><br><span class="line">A   --  M1 ---- M2  ----- M3 ---- boom &lt;- master</span><br><span class="line">  \            /pick              /</span><br><span class="line">   F1 ------- F2 --------------- F3    &lt;- feature</span><br><span class="line">   apple      berry              cherry</span><br></pre></td></tr></table></figure>
+
+<p>如上图所示，在 cherry-pick 之后，我们又进行了如下操作：<br>    •    在 master 分支进行了 M3 提交，该提交并未修改 berry 这行代码<br>    •    在 feature 分支进行了 F3 提交，将 berry 修改为了 cherry<br>    •    尝试将 feature 分支往 master 合并：⚠️冲突发生</p>
+<p>分析：合并时，M3 和 F3 的最近公共祖先（merge base）是 commit A，这行代码为 apple，然后对比发现，master 分支上这行代码由 apple 变成了 berry，feature 分支上这行代码由 apple 变成了 cherry，所以冲突出现了。</p>
+<p>如果我们使用的是 merge 呢？那 M2 到 F2 将是一条实线，M3 和 F3的最近公共祖先（merge base）会是 F2，master 上：berry -&gt; berry，feature 上 berry -&gt; cherry，因为 master 分支相对 F2没有修改，所以就没有冲突。</p>
 <p>这只是两个分支的简单情况，随着分支增多，冲突会越来越难以处理。</p>
 <p>而且这是有冲突的情况，还有一种情况是没有冲突，却可能引发更严重的问题。</p>
-<p><strong>3. 这一行代码之后在两个分支上又有了修改，没有冲突，顺利合并</strong>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apple   apple   berry     berry   berry</span><br><span class="line">A   --  M1 ---- M2  ----- M3 ---- M4⚠️    &lt;- master</span><br><span class="line">  \            /pick              /</span><br><span class="line">   F1 ------- F2 --------------- F3     &lt;- feature</span><br><span class="line">   apple      berry              apple</span><br></pre></td></tr></table></figure></p>
-<p>为了更直观，我们将这一行代码视为一个功能的开关配置：apple 代表这个功能是上线状态，berry 代表这个功能是下线状态。</p>
-<p>如上图，最开始（A），我们这一行代码是 apple，代表功能为上线状态。</p>
-<p>然后我们发现了一些 bug，需要将该功能紧急下线，我们：
-	•	在 feature 分支上下线该功能（F2）：apple -&gt; berry
-	•	然后将该操作 cherry-pick 到 master（M2），现在 master 上该功能也下线了
-	•	然后我们在 feature 分支上进行了 bug 修复，最终解决了 bug，我们在 feature 分支上将该功能上线（F3）：berry -&gt; apple
-	•	然后我们决定将 bug 修复 merge 到 master
-	•	merge 顺利完成，没有冲突。但是：这行代码仍然是berry，下线状态</p>
-<p>merge 分析：M3(berry) 和 F3(apple) 的最近公共祖先是 A(apple)，因此 git 认为 feature 分支并未修改 apple 的值，结果合并后 master 分支上这行代码还是 berry，我们的功能在 master 上还是下线状态。</p>
+<p><strong>3. 这一行代码之后在两个分支上又有了修改，没有冲突，顺利合并</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apple   apple   berry     berry   berry</span><br><span class="line">A   --  M1 ---- M2  ----- M3 ---- M4⚠️    &lt;- master</span><br><span class="line">  \            /pick              /</span><br><span class="line">   F1 ------- F2 --------------- F3     &lt;- feature</span><br><span class="line">   apple      berry              apple</span><br></pre></td></tr></table></figure>
+
+<p>为了更直观，我们将这一行代码视为一个功能的开关配置：apple 代表这个功能是上线状态，berry 代表这个功能是下线状态。</p>
+<p>如上图，最开始（A），我们这一行代码是 apple，代表功能为上线状态。</p>
+<p>然后我们发现了一些 bug，需要将该功能紧急下线，我们：<br>    •    在 feature 分支上下线该功能（F2）：apple -&gt; berry<br>    •    然后将该操作 cherry-pick 到 master（M2），现在 master 上该功能也下线了<br>    •    然后我们在 feature 分支上进行了 bug 修复，最终解决了 bug，我们在 feature 分支上将该功能上线（F3）：berry -&gt; apple<br>    •    然后我们决定将 bug 修复 merge 到 master<br>    •    merge 顺利完成，没有冲突。但是：这行代码仍然是berry，下线状态</p>
+<p>merge 分析：M3(berry) 和 F3(apple) 的最近公共祖先是 A(apple)，因此 git 认为 feature 分支并未修改 apple 的值，结果合并后 master 分支上这行代码还是 berry，我们的功能在 master 上还是下线状态。</p>
 <p>之前还遇到过第三方依赖升级后 引用写法有变化，因为升级代码还没上线，所以 master 分支 和 release 分支 是两个依赖版本 两种写法，导致这个期间的线上bug 是基于master 分支进行修复，但上线时需将代码pick到 release分支，导致的一些本该避免的问题（后期变了上线分支策略）。</p>
 <p>通常情况下，当我们做 pick 操作的后，我们将会有两份一样的代码同时存在。必须保证这两份代码在merge到一起前 没有改动，才不会有其他影响。这样的保证 在 多人并行开发的时候较难，但从上面分析的例子来看 的确pick 有点坑。</p>
 <p>先看下 merge 操作 和 pick 操作到底有哪些不同。追本溯源的看一下。</p>
-<p>简单来说： 差别超级巨大！ 不过既然我们花了一个博客的时间来说这个事，那就要把它里里外外的整明白，let's go!</p>
+<p>简单来说： 差别超级巨大！ 不过既然我们花了一个博客的时间来说这个事，那就要把它里里外外的整明白，let’s go!</p>
 <p>cherry-pick 是复制一个已存在的 commit。本质上，计算出pick commit 的 change-set，将这个 change-set 应用到另一个已存在commit 上，形成一个新的commit。这个新 commit 有着同 pick commit一样的 change-set，但形成的是一个不同的 snapshot。</p>
 <p>上面的描述在 pick 无冲突的时候完全可以这样理解，但是 有冲突的时候 我们就要看一下冲突原因了。其实 cherry-pick 可以理解为一种特殊的merge操作，所以理解pick，先从理解 git merge 开始。</p>
 <p>merging 操作相对来说就很复杂了，它没有复制任何东西。而是形成了一种 merge 类型的 commit。说到 commit 完全有必要先要说一下 git commit graph。</p>
-<h2>我们需要了解的 commit</h2>
-<p>git 可以理解为 由很多个 commit 组成，每个 commit 都完整的保留了一份repo 中所有内容的 snapshot。所以说 commit 不是 change-sets。也就是说，当我们改动了其中一个文件中的一行，然后提交生成一个新的 commit，这个新的 commit 中包含该仓库中的所有文件 包括刚改动的文件。当我们用 git show 或 git log -p 查看改动时，git 会解析前一个commit 的snapshot，再解析当前 commit 的snapshot，两个 snapshot 做比对，最后只显示计算出来的diff。</p>
+<h2 id="我们需要了解的-commit"><a href="#我们需要了解的-commit" class="headerlink" title="我们需要了解的 commit"></a>我们需要了解的 commit</h2><p>git 可以理解为 由很多个 commit 组成，每个 commit 都完整的保留了一份repo 中所有内容的 snapshot。所以说 commit 不是 change-sets。也就是说，当我们改动了其中一个文件中的一行，然后提交生成一个新的 commit，这个新的 commit 中包含该仓库中的所有文件 包括刚改动的文件。当我们用 git show 或 git log -p 查看改动时，git 会解析前一个commit 的snapshot，再解析当前 commit 的snapshot，两个 snapshot 做比对，最后只显示计算出来的diff。</p>
 <p>这也就说明每个commit 都知道他的父commit 或祖先commit。git 中的commit 都有一个唯一且不能修改的名字，称作hashid 或者是 OID（O 是 object 的意思）就是一串很长的hash 值比如 c80d9ec7070778315405dd906f25777ba56f439d 就是git repo中的一个提价 commit。comiit id 看似一串随机字母数字组成的，其实不然，他会记录父commit 的hash 值，然后通过这个关系可以向后找到他的parent commit。</p>
-<p>这样的结果就是每个commit 都可以向后找他的 parent commit，多个commit 形成一个 commit 链，最终形成一个git repo 的 git commit graph。
-比如 下面的三个 commit，A B C， C是最新的一个commit ，从 C 我们可以找到他的parent commit B，然后继续向后找到A，A 没有 parent commit 所以找到A 就结束了。
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A &lt;- B &lt;- C</span><br></pre></td></tr></table></figure></p>
+<p>  这样的结果就是每个commit 都可以向后找他的 parent commit，多个commit 形成一个 commit 链，最终形成一个git repo 的 git commit graph。<br>  比如 下面的三个 commit，A B C， C是最新的一个commit ，从 C 我们可以找到他的parent commit B，然后继续向后找到A，A 没有 parent commit 所以找到A 就结束了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A &lt;- B &lt;- C</span><br></pre></td></tr></table></figure>
+
 <p>commit 一旦创建 无法修改，只有只读属性，因为 hash ID 实际上是这个commit 中完整内容的密码校验和。任何一个微小的改动都会生成一个新的hashID，一个新的commit。</p>
-<h2>我们需要了解的 branch names</h2>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -- B -- C   &lt;- master</span><br></pre></td></tr></table></figure></p>
-<p>实际上 分支名 是指向某个commit的一个指针，如上图，C是最近的一个 commit，那么 master分支 实际上是指向 commit C 的一个指针。与 commit 不同的是，分支名是可变的，而且是自动变化的。在 git 中创建一个新的commit 包含：parent hash ID，提交信息，保存 snapshot，log 信息等，然后创建一个新的commit，接着将分支名的指针 指向这个新commit。</p>
-<p>如果我们在master上创建一个新commit D，那边变化如下图：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -- B -- C -- D  &lt;- master</span><br></pre></td></tr></table></figure></p>
-<p>这时候创建一个新的分支叫 featrue，那么featrue 的指针仍指向D</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -- B -- C -- D  &lt;- master, featrue</span><br></pre></td></tr></table></figure></p>
-<p>然后 创建一个新 commit E，parent ID 是D：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">A--B--C--D</span><br><span class="line">          \</span><br><span class="line">           E</span><br></pre></td></tr></table></figure></p>
-<p>这个时候 哪个分支会更新呢？ master 还是 feature？</p>
-<h2>关于 GIT HEAD</h2>
-<p>git 为了记住当前是处于哪个分支，或是处于哪个commit上，于是有了一个特殊的名字 <strong>HEAD</strong>（为什么都是大写字母呢，在windows 和mac 上用小写字母是可以的，但在linux/UNIX上不行，也可以使用 @ 符号代替），通常，git 会将 HEAD 粘在一个分支名上：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A--B--C--D  &lt;- feature(HEAD), master</span><br></pre></td></tr></table></figure></p>
-<p>HEAD 在 feature 分支上，所以 E 也是在 feature 分支上的：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">A--B--C--D  &lt;- master</span><br><span class="line">          \</span><br><span class="line">           E  &lt;- feature(HEAD)</span><br></pre></td></tr></table></figure></p>
+<h2 id="我们需要了解的-branch-names"><a href="#我们需要了解的-branch-names" class="headerlink" title="我们需要了解的 branch names"></a>我们需要了解的 branch names</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -- B -- C   &lt;- master</span><br></pre></td></tr></table></figure>
+
+<p>  实际上 分支名 是指向某个commit的一个指针，如上图，C是最近的一个 commit，那么 master分支 实际上是指向 commit C 的一个指针。与 commit 不同的是，分支名是可变的，而且是自动变化的。在 git 中创建一个新的commit 包含：parent hash ID，提交信息，保存 snapshot，log 信息等，然后创建一个新的commit，接着将分支名的指针 指向这个新commit。</p>
+<p>  如果我们在master上创建一个新commit D，那边变化如下图：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -- B -- C -- D  &lt;- master</span><br></pre></td></tr></table></figure>
+
+<p>  这时候创建一个新的分支叫 featrue，那么featrue 的指针仍指向D</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -- B -- C -- D  &lt;- master, featrue</span><br></pre></td></tr></table></figure>
+
+
+<p>  然后 创建一个新 commit E，parent ID 是D：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">A--B--C--D</span><br><span class="line">          \</span><br><span class="line">           E</span><br></pre></td></tr></table></figure>
+
+
+<p>  这个时候 哪个分支会更新呢？ master 还是 feature？</p>
+<h2 id="关于-GIT-HEAD"><a href="#关于-GIT-HEAD" class="headerlink" title="关于 GIT HEAD"></a>关于 GIT HEAD</h2><p>git 为了记住当前是处于哪个分支，或是处于哪个commit上，于是有了一个特殊的名字 <strong>HEAD</strong>（为什么都是大写字母呢，在windows 和mac 上用小写字母是可以的，但在linux/UNIX上不行，也可以使用 @ 符号代替），通常，git 会将 HEAD 粘在一个分支名上：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A--B--C--D  &lt;- feature(HEAD), master</span><br></pre></td></tr></table></figure>
+
+<p> HEAD 在 feature 分支上，所以 E 也是在 feature 分支上的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">A--B--C--D  &lt;- master</span><br><span class="line">          \</span><br><span class="line">           E  &lt;- feature(HEAD)</span><br></pre></td></tr></table></figure>
+
 <p>有时候git 的某些操作会看到这样的提示：detached HEAD，这是说明当前的 HEAD 不是依附在具体的某个分支上，而是依附在 某个 commit 上。也就是说 当前没有在任何分支上。</p>
-<h2>commit graph 和 git merge</h2>
-<p>现在我们知道了 commit 间的指向关系 以及 branch 只是一个指针的内幕，是时候看看 git merge 怎么处理的了。</p>
+<h2 id="commit-graph-和-git-merge"><a href="#commit-graph-和-git-merge" class="headerlink" title="commit graph 和 git merge"></a>commit graph 和 git merge</h2><p>现在我们知道了 commit 间的指向关系 以及 branch 只是一个指针的内幕，是时候看看 git merge 怎么处理的了。</p>
 <p>假设我们有这样的两个分支和一些commit：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  &lt;- master(HEAD)</span><br><span class="line">      /</span><br><span class="line">...--D</span><br><span class="line">      \</span><br><span class="line">       E -- F  &lt;- develop  	</span><br><span class="line">&gt; git checkout master &amp;&amp; git merge develop</span><br></pre></td></tr></table></figure></p>
-<p>执行上面的操作后，git 会从两个分支指向的commit 开始 向后查找他们的公共祖先，F 到 E 到 D， 从H 到 G 到 D。最终找到了同时存在两个分支上的commit D，D之前的commit 也是公共commit，但 D 是最好的 因为D是距离两个分支最近的公共commit。</p>
-<p>最近公共节点 也可以叫做 merge base。找到 merge base 后，git 要做的事情就是 找不同 然后整合到一起。具体要做的事：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  &lt;- master(HEAD)</span><br><span class="line">      /</span><br><span class="line">...--D</span><br><span class="line">      \</span><br><span class="line">       E -- F  &lt;- develop  	</span><br><span class="line">&gt; git checkout master &amp;&amp; git merge develop</span><br></pre></td></tr></table></figure>
+
+
+<p> 执行上面的操作后，git 会从两个分支指向的commit 开始 向后查找他们的公共祖先，F 到 E 到 D， 从H 到 G 到 D。最终找到了同时存在两个分支上的commit D，D之前的commit 也是公共commit，但 D 是最好的 因为D是距离两个分支最近的公共commit。</p>
+<p> 最近公共节点 也可以叫做 merge base。找到 merge base 后，git 要做的事情就是 找不同 然后整合到一起。具体要做的事：</p>
 <ul>
 <li>解析merge base 的 snapshot，到一个临时区域</li>
 <li>计算 merge base 到 H 的 diff，得到 change-set1（都是靠解析 snapshot 来做的）</li>
 <li>计算 merge base 到 F 的 diff，得到 change-set2</li>
 <li>结合 change-set1 和 2，与 merge base 比对，形成一个新的 commit I。</li>
 </ul>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  </span><br><span class="line">      /      \</span><br><span class="line">...--D        I  &lt;- master(HEAD)</span><br><span class="line">      \      /</span><br><span class="line">       E -- F  &lt;- develop</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  </span><br><span class="line">      /      \</span><br><span class="line">...--D        I  &lt;- master(HEAD)</span><br><span class="line">      \      /</span><br><span class="line">       E -- F  &lt;- develop</span><br></pre></td></tr></table></figure>
+
 <p>commit I  有一个特点，除了保留了当前repo的所有文件的 snapshot外，还有一点是 I 有两个parent，不像上图所见的其他 commit 一样只有一个parent ID。I 的第一个 parent 是 我们执行git merge 命令的分支，第二个是另外一个分支，另外，I 是一个 merge 类型的 commit。</p>
-<p>回看 git repo 历史 就是一个个 commit 的集合，这就使得一个新的 commit 有着两个分支的历史。比如，从 I 向后走，可以走 H 或 F，再分别向后走 G 和 E，最后到D。 master 分支会指向新的 commit I，而 develop 还是指向 F，没有改变。</p>
-<p>现在删除 develop 分支是很安全的，当然 也可以继续在 develop 分支上提交commit 继续开发。</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  </span><br><span class="line">      /      \</span><br><span class="line">...--D        I  &lt;- master</span><br><span class="line">      \      /</span><br><span class="line">       E -- F -- J -- K -- L  &lt;- develop</span><br></pre></td></tr></table></figure></p>
+<p>   回看 git repo 历史 就是一个个 commit 的集合，这就使得一个新的 commit 有着两个分支的历史。比如，从 I 向后走，可以走 H 或 F，再分别向后走 G 和 E，最后到D。 master 分支会指向新的 commit I，而 develop 还是指向 F，没有改变。</p>
+<p>   现在删除 develop 分支是很安全的，当然 也可以继续在 develop 分支上提交commit 继续开发。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  </span><br><span class="line">      /      \</span><br><span class="line">...--D        I  &lt;- master</span><br><span class="line">      \      /</span><br><span class="line">       E -- F -- J -- K -- L  &lt;- develop</span><br></pre></td></tr></table></figure>
+
 <p>如果现在 我们再次执行 <code>git checkout master &amp;&amp; git merge develop</code>，git 还会执行上述几步骤相同的操作，但这次的 merge base 不再是 D，而是 F，一个从 I向后走到F，另一个从L向后走 还是到 F。从而形成一个新的commit：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  </span><br><span class="line">      /      \</span><br><span class="line">...--D        I ------------ M  &lt;- master(HEAD)</span><br><span class="line">      \      /              /</span><br><span class="line">       E -- F -- J -- K -- L  &lt;- develop</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G -- H  </span><br><span class="line">      /      \</span><br><span class="line">...--D        I ------------ M  &lt;- master(HEAD)</span><br><span class="line">      \      /              /</span><br><span class="line">       E -- F -- J -- K -- L  &lt;- develop</span><br></pre></td></tr></table></figure>
+
 <p>如果继续开发，merge base 会是 L。</p>
-<h2>cherry-pick 使用 git merge 相同机制 但 merge base 很奇怪</h2>
-<p>回到最开始的这个状态：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">        G -- H  &lt;- master(HEAD)</span><br><span class="line">       /</span><br><span class="line">...--D</span><br><span class="line">      \</span><br><span class="line">       E -- F  &lt;- develop</span><br></pre></td></tr></table></figure></p>
-<p><code>&gt; git checkout master &amp;&amp; git cherry-pick develop</code></p>
+<h2 id="cherry-pick-使用-git-merge-相同机制-但-merge-base-很奇怪"><a href="#cherry-pick-使用-git-merge-相同机制-但-merge-base-很奇怪" class="headerlink" title="cherry-pick 使用 git merge 相同机制 但 merge base 很奇怪"></a>cherry-pick 使用 git merge 相同机制 但 merge base 很奇怪</h2><p>回到最开始的这个状态：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">        G -- H  &lt;- master(HEAD)</span><br><span class="line">       /</span><br><span class="line">...--D</span><br><span class="line">      \</span><br><span class="line">       E -- F  &lt;- develop</span><br></pre></td></tr></table></figure>
+
+<p><code>&gt; git checkout master &amp;&amp; git cherry-pick develop</code> </p>
 <ul>
 <li>首先git 会找到 develop 对应的 commit</li>
 <li>计算 F 和 E 的diff（这里仅计算picked commit 和 picked parent commit的diff，不去找merge base）</li>
 <li>计算出 change-set 应用到 H 上，形成一个新的 commit</li>
 </ul>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G--H--F0   &lt;-- master (HEAD)</span><br><span class="line">      /</span><br><span class="line">...--D</span><br><span class="line">      \</span><br><span class="line">       E--F   &lt;-- develop</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">       G--H--F0   &lt;-- master (HEAD)</span><br><span class="line">      /</span><br><span class="line">...--D</span><br><span class="line">      \</span><br><span class="line">       E--F   &lt;-- develop</span><br></pre></td></tr></table></figure>
+
 <p>注意到 pick 结束后 develop分支指向没变，但是生成了一个新的commit，master 指针指向最新的commit，然而 我们并没有生成一个 merge commit， 新的 F0 与 F 没有直接关系，commit 走向没有相交，两个 commit 的merge base 还是 D。</p>
-<p>这就是 cherry-pick 同 merge的区别：使用了 merge 的 change-set 合并机制，但 commit graph 中却没有将两个commit merge 到一起。只是简单的 复制了一个 commit 的change-set 到另一个commit 后面形成一个新的 commit。新的commit 会有一个新的 hash ID，与被 pick 的hashid 没有什么实际关联。</p>
-<h2>fast-forward 特例</h2>
-<p>有一种情况是 merge base 真的无关紧要，比如：</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...--F--G--H   &lt;-- develop (HEAD)</span><br><span class="line">            \</span><br><span class="line">             I--J   &lt;-- feature-X</span><br></pre></td></tr></table></figure></p>
+<p> 这就是 cherry-pick 同 merge的区别：使用了 merge 的 change-set 合并机制，但 commit graph 中却没有将两个commit merge 到一起。只是简单的 复制了一个 commit 的change-set 到另一个commit 后面形成一个新的 commit。新的commit 会有一个新的 hash ID，与被 pick 的hashid 没有什么实际关联。</p>
+<h2 id="fast-forward-特例"><a href="#fast-forward-特例" class="headerlink" title="fast-forward 特例"></a>fast-forward 特例</h2><p>有一种情况是 merge base 真的无关紧要，比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...--F--G--H   &lt;-- develop (HEAD)</span><br><span class="line">            \</span><br><span class="line">             I--J   &lt;-- feature-X</span><br></pre></td></tr></table></figure>
+
 <p>执行 git merge featrue-X 后，git 会从 H 和 J 分别向后查找 merge base ，最后发现 H 就是 merge base，也就是说 一个 change-set 是一个空集，可以强制 git 执行 真是的 merge操作，<code>git merge --no-ff</code>就会形成一个真正的 merge commit。</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...--F--G--H------J0   &lt;-- develop (HEAD)</span><br><span class="line">            \    /</span><br><span class="line">             I--J   &lt;-- feature-X</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...--F--G--H------J0   &lt;-- develop (HEAD)</span><br><span class="line">            \    /</span><br><span class="line">             I--J   &lt;-- feature-X</span><br></pre></td></tr></table></figure>
+
 <p>J 和 J0虽然又着不同的 hashID 但是 他俩的 snapshot 是完全一样的。</p>
-<p>但 如果我们不强制形成一个真正的merge呢，git 会意识到 J0 和 J其实是一样的，真的不需要再形成一个新的commit，那么git就会将 HEAD 向前滑动，也就是 commit 关系指向的反方向。
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...--F--G--H</span><br><span class="line">            \</span><br><span class="line">             I--J   &lt;-- develop (HEAD), feature-X</span><br></pre></td></tr></table></figure></p>
+<p>但 如果我们不强制形成一个真正的merge呢，git 会意识到 J0 和 J其实是一样的，真的不需要再形成一个新的commit，那么git就会将 HEAD 向前滑动，也就是 commit 关系指向的反方向。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...--F--G--H</span><br><span class="line">            \</span><br><span class="line">             I--J   &lt;-- develop (HEAD), feature-X</span><br></pre></td></tr></table></figure>
+
 <p>这就是 fast-forward 操作。</p>
 <p>参考文章：<a href="https://stackoverflow.com/questions/53972594/what-is-the-difference-between-a-git-merge-and-git-cherry-pick-for-a-specific-co/53974633#53974633" target="_blank" rel="noopener">what is the difference between a Git-merge and Git-cherry-pick for a specific commit?</a></p>
+<p> </p>
 
       </div>
       

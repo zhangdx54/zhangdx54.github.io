@@ -96,14 +96,8 @@
 <p><img src="qrcode2.png" alt="QR码的基本组成"></p>
 <p>现世的普通QR code 有四十个版本，版本越大，对应图形的尺寸越大，最小的版本1，是一个 21 x 21 的正方形，每升级一个版本，对应正方形的长款 各增加四个小格子长度，那么最大的版本 40， 是一个 177 x 177 的巨型正方形。</p>
 <p>我们以上面的二维码为例，介绍一下 QR 码的基本组成。</p>
-<p>第一部分是，三个角的回字形方块 和 周围宽度为 1 的白色分隔符；
-第二部分是，三个回字形方块间的黑白黑白方块的定位图案，以告知扫码器横竖的标准方向。
-第三部分是，4.2 表示的 5 x 5 校正图形小方块，尺寸越大 用于矫正的方块数量也越多，
-这样 即使我们用奇怪的角度扫描，算法（<strong>RGB转化为灰度图像 - 局部阈值发二值化图像 - 形态学滤波 - Harris 角点检测 - 凸包算法 - 提取QR 码的轮廓 - 计算QR码定点角点坐标 = 计算QR码顶点角点坐标 - 透视变换校正</strong>）依然可以根据这三组图案，获取正面的 正确的图案
-第四部分是，有两组相同的方块（图中 2 格式信息），组成格式信息 每组15个，放置在定位区域的旁边；
-第五部分是剩下的区域，会被分成几个模块，存储数据 和 纠错码。
-第六部分，在版本大于 7的QR码中，如图就是，还需要在图中两处紫色的位置 记录 18位的版本信息，提高扫码器的效率。</p>
-<p>第 1 2 3 部分的设置 只是让QR码可以被扫码器认出来。但 QR码 真正超级无敌厉害的地方是，即使污损处高达百分之三十，QR码中存储的信息仍可以被正确的识别。</p>
+<p>第一部分是，三个角的回字形方块 和 周围宽度为 1 的白色分隔符；<br>第二部分是，三个回字形方块间的黑白黑白方块的定位图案，以告知扫码器横竖的标准方向。<br>第三部分是，4.2 表示的 5 x 5 校正图形小方块，尺寸越大 用于矫正的方块数量也越多，<br>这样 即使我们用奇怪的角度扫描，算法（<strong>RGB转化为灰度图像 - 局部阈值发二值化图像 - 形态学滤波 - Harris 角点检测 - 凸包算法 - 提取QR 码的轮廓 - 计算QR码定点角点坐标 = 计算QR码顶点角点坐标 - 透视变换校正</strong>）依然可以根据这三组图案，获取正面的 正确的图案<br>第四部分是，有两组相同的方块（图中 2 格式信息），组成格式信息 每组15个，放置在定位区域的旁边；<br>第五部分是剩下的区域，会被分成几个模块，存储数据 和 纠错码。<br>第六部分，在版本大于 7的QR码中，如图就是，还需要在图中两处紫色的位置 记录 18位的版本信息，提高扫码器的效率。</p>
+<p>第 1 2 3 部分的设置 只是让QR码可以被扫码器认出来。但 QR码 真正超级无敌厉害的地方是，即使污损处高达百分之三十，QR码中存储的信息仍可以被正确的识别。 </p>
 <p>我们再继续看看，为什么。</p>
 <p>继续往下看 我们就进入到了二维码的核心内容，Reed-Solomon （里德-所罗门码）编码： 一种前向错误更正的信道编码，对由校正过采样数据所产生的有效多项式。</p>
 <p>二维码中的黑白格子 实际上就是由 1 0 两种数字对应的二进制数据，比如 1 2 3 4 这四个数字，我们可以将其编码为 0001 0010 0011 0100，1 对应小黑格子，0 对应小白格子，而里德所罗门编码可以随机污损其中的几个小格子，机器仍然可以自动还原成正确的数据。怎么实现的呢？</p>
@@ -113,39 +107,38 @@
 <p>但上述陈述的前提，是要让机器知道，这串数字错了。</p>
 <p>最简答的方法就是算0，如果结果是0，就没问题，反之不是0就是有问题的。比如我们每个设备有一个固定值 g，输入值 m，如果 <code>m - g = 0</code>，这个结果就是对的。但 固定值 g 是不会变的，当输入值 m 变化，<code>m - g</code> 结果就不等于0了，所以我们需要根据 m 和 g 反推出一个 p，无论输入怎么变化，p 值都会保证 <code>m + p - g</code> 的结果为0，这个 p 就是纠错码。</p>
 <p>当输入值 m 被篡改了，那么上述的 <code>m + p - g</code> 表达式就不再为0，机器就知道这串数字错误了，但有一个问题，输入值 m 和 纠错码 p 都会出现在二维码上，那这就带来了一个新问题，纠错码同样有被修改的可能，也就是说，如果 <code>m + p - g</code> 不等于0，我们永远都不知道是 m 错了 还是 p 错了，那怎么办呢？</p>
-<p>思路是将 m 与 p 合并成一个值，比如 m 是 1234，p 为 xxxx，那么合并后为 1234xxxx，然后会发现 mp - g 很难结果为0，相差太大了，怎么办呢？</p>
+<p>思路是将 m 与 p 合并成一个值，比如 m 是 1234，p 为 xxxx，那么合并后为 1234xxxx，然后会发现 mp - g 很难结果为0，相差太大了，怎么办呢？ </p>
 <p>答案是 除法。只要 mp 可以整除 g，可以判断输入数字没问题。但是 这样做仍然会遇到一些问题，首先mp 与 g的整除关系可以是多个，比如 9 可以整除3 ，27 也可以整除 3，其次，如果不能整除，那么我们怎样通过一个余数 计算出哪个数字错了呢？</p>
 <p>发现这条路可能走不通了，换个思路，引入一个新的概念：伽罗瓦域（Galois Field， GF）</p>
 <blockquote>
-<p>在数学中，有限域（英語：finite field）或伽罗瓦域（英語：Galois field，为纪念埃瓦里斯特·伽罗瓦命名）是包含有限个元素的域。与其他域一样，有限域是进行加减乘除运算都有定义并且满足特定规则的集合。有限域最常见的例子是当 p 为素数时，整数对 p 取模。
-有限域的元素个数称为它的阶。
-有限域在许多数学和计算机科学领域的基础，包括数论、代数几何、伽羅瓦理論、有限幾何學、密码学和编码理论。<a href="https://en.wikipedia.org/wiki/Finite_field" target="_blank" rel="noopener">详见维基百科</a></p>
+<p>在数学中，有限域（英語：finite field）或伽罗瓦域（英語：Galois field，为纪念埃瓦里斯特·伽罗瓦命名）是包含有限个元素的域。与其他域一样，有限域是进行加减乘除运算都有定义并且满足特定规则的集合。有限域最常见的例子是当 p 为素数时，整数对 p 取模。<br>有限域的元素个数称为它的阶。<br>有限域在许多数学和计算机科学领域的基础，包括数论、代数几何、伽羅瓦理論、有限幾何學、密码学和编码理论。<a href="https://en.wikipedia.org/wiki/Finite_field" target="_blank" rel="noopener">详见维基百科</a></p>
 </blockquote>
 <p>我们可以简单理解，伽罗瓦域厉害的地方在于，这是一个有限的世界，域内的数无论如何计算都不会得到他们之外的结果。</p>
-<p>以 GF[2^3]域为例，一共有 8 个数，及对应的二进制
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> 0，   1，   2，   3，   4，   5，   6，   7</span><br><span class="line">000， 001， 010， 011， 100， 101， 110， 111</span><br></pre></td></tr></table></figure></p>
-<p>伽罗瓦域里 加法与减法运算是一样的，都是异或算法，比如 1 + 2 或 1 - 2
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">001 异或操作</span><br><span class="line">010</span><br><span class="line">---</span><br><span class="line">011 结果都是3</span><br></pre></td></tr></table></figure></p>
-<p>除法与乘法或相对复杂些，比如我们想计算 6 x 7，
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1.模二乘法		110          3. 模二除法 除以一个固定的数 1011</span><br><span class="line">		      	111                  10 </span><br><span class="line">		     -------           	      -----</span><br><span class="line">		         110            1011/10010</span><br><span class="line">		        110                  1011</span><br><span class="line">2.异或运算    110                ------------</span><br><span class="line">		  ----------           余数：   100 也就是 4  </span><br><span class="line">		       10010</span><br></pre></td></tr></table></figure></p>
+<p>以 GF[2^3]域为例，一共有 8 个数，及对应的二进制</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> 0，   1，   2，   3，   4，   5，   6，   7</span><br><span class="line">000， 001， 010， 011， 100， 101， 110， 111</span><br></pre></td></tr></table></figure>
+
+<p>伽罗瓦域里 加法与减法运算是一样的，都是异或算法，比如 1 + 2 或 1 - 2</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">001 异或操作</span><br><span class="line">010</span><br><span class="line">---</span><br><span class="line">011 结果都是3</span><br></pre></td></tr></table></figure>
+
+<p>除法与乘法或相对复杂些，比如我们想计算 6 x 7，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1.模二乘法		110          3. 模二除法 除以一个固定的数 1011</span><br><span class="line">		      	111                  10 </span><br><span class="line">		     -------           	      -----</span><br><span class="line">		         110            1011/10010</span><br><span class="line">		        110                  1011</span><br><span class="line">2.异或运算    110                ------------</span><br><span class="line">		  ----------           余数：   100 也就是 4  </span><br><span class="line">		       10010</span><br></pre></td></tr></table></figure>
+
 <p>由上 我们得知 利用伽罗瓦域的特性，有限个数之间 无论我们如何计算 永远得到这有限个数之内的数值，神奇啊！！</p>
 <p>好 回到上面 我们刚刚说的那个除法问题。我们如何用这仅有的几个数字表达 mp 这么大的一个数字呢？ 哈哈哈哈哈，没错 多项式</p>
 <blockquote>
 <p>是由称为未知数的变量和称为系数的常数通过有限次加减法、乘法以及自然数幂次的乘方运算得到的代数表达式 <a href="https://en.wikipedia.org/wiki/Polynomial" target="_blank" rel="noopener">wikipedia</a></p>
 </blockquote>
 <p>比如 最开始的四个数 1 2 3 4，对应的位置信息分别是 3 2 1 0，那么用多项式可以这样表达，我们将小格子中的数 作为多项式的系数，位置信息作为多项式的指数， 表达式可以写成 <code>m(x) = 1*x^3 + 2*x^2 + 3*x^1 + 4*x^0</code></p>
-<p>那么 上面的 输入值 mp 12340000 的多项式我们可以写成
-<code>m(x) = 1*x^7 + 2*x^6 + 3*x^5 + 4*x^4 + 0*x^3 + 0*x^2 + 0*x^1 + 0*x^0</code></p>
-<p>固定值 g 也可以写成多项式，根据纠错码 p 来写
-<code>g(x) = (x - 2^0)(x - 2^1)(x - 2^2)(x - 2^3)</code>，这样写的目的在于 这个多项式展开后，最高的幂次是4</p>
+<p>那么 上面的 输入值 mp 12340000 的多项式我们可以写成<br><code>m(x) = 1*x^7 + 2*x^6 + 3*x^5 + 4*x^4 + 0*x^3 + 0*x^2 + 0*x^1 + 0*x^0</code></p>
+<p>固定值 g 也可以写成多项式，根据纠错码 p 来写<br><code>g(x) = (x - 2^0)(x - 2^1)(x - 2^2)(x - 2^3)</code>，这样写的目的在于 这个多项式展开后，最高的幂次是4</p>
 <p>然后 我们用 <code>m(x) / g(x) = h(x) ....p(x)</code>，这里省略下计算方法（有点长），得到的<code>p(x) = 1*x^3 + 6*x^2 + 7*x^1 + 4*x^0</code>，这个多项式的系数1674 就是我们想要的纠错码，也就是 <code>mp = 12341674</code>，有了这个纠错码，我们 变化一下上面的 方程组<code>m(x) / g(x) = h(x) ....p(x)</code>， <code>m(x) + p(x) = h(x)g(x)</code> =&gt; <code>M(x) = h(x)g(x)</code></p>
 <p>好 到这里 我们的准备工作已经完成，接下来 我们任意修改 mp 中的两个数字，然后 模拟系统的计算方法，接着看，会发生什么。</p>
-<p>比如 我们将 mp = 12341674 修改成 mpw = 62241674。也就是 第一项的 1 变成了 6，第三项的 3 变成了 2,接着我们将修改后的mpw 变成多项式
-<code>mw(x) = 6*x^7 + 2*x^6 + 2*x^5 + 4*x^4 + 1*x^3 + 6*x^2 + 7*x^1 + 4*x^0</code>
-除以提前 设定好的 g(x)，将会得到余数 1 6 4 5，有余数说明输入数据有误，那么如何找到错误数字的位置和偏差呢？回到<code>M(x) = h(x)g(x)</code>这个方程，如果想要余数为0，那么看 <code>g(x) = (x - 2^0)(x - 2^1)(x - 2^2)(x - 2^3)</code> 恰好有四种情况会等于0，x = 1,x = 2, x = 4, x = 8，将这几个值分别带入公式：
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m(x) = 6*x^7 + 2*x^6 + 2*x^5 + 4*x^4 + 0*x^3 + 0*x^2 + 0*x^1 + 0*x^0</span><br></pre></td></tr></table></figure></p>
-<p>可以得到四个结果
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">m(1) = 6</span><br><span class="line">m(2) = 0</span><br><span class="line">m(4) = 4</span><br><span class="line">m(8) = 5</span><br></pre></td></tr></table></figure></p>
+<p>比如 我们将 mp = 12341674 修改成 mpw = 62241674。也就是 第一项的 1 变成了 6，第三项的 3 变成了 2,接着我们将修改后的mpw 变成多项式<br><code>mw(x) = 6*x^7 + 2*x^6 + 2*x^5 + 4*x^4 + 1*x^3 + 6*x^2 + 7*x^1 + 4*x^0</code><br>除以提前 设定好的 g(x)，将会得到余数 1 6 4 5，有余数说明输入数据有误，那么如何找到错误数字的位置和偏差呢？回到<code>M(x) = h(x)g(x)</code>这个方程，如果想要余数为0，那么看 <code>g(x) = (x - 2^0)(x - 2^1)(x - 2^2)(x - 2^3)</code> 恰好有四种情况会等于0，x = 1,x = 2, x = 4, x = 8，将这几个值分别带入公式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m(x) = 6*x^7 + 2*x^6 + 2*x^5 + 4*x^4 + 0*x^3 + 0*x^2 + 0*x^1 + 0*x^0</span><br></pre></td></tr></table></figure>
+
+<p>可以得到四个结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">m(1) = 6</span><br><span class="line">m(2) = 0</span><br><span class="line">m(4) = 4</span><br><span class="line">m(8) = 5</span><br></pre></td></tr></table></figure>
+
 <p>这四个结果，与两个错误数字的位置 e1 和 e2，错误的大小 y1 和 y2，又可以根据 <code>m(x) = y1*x^e1 + y2*x^e2</code> 组成方程组，四个未知数 四个方程组，不难得到 y1 = 1,y2 = 7, e1 = 5, e2 = 7，将错误的 mpw = 62241674，中 6 和 2 拿出来 与 7 和 1 做异或操作，即可得到原来正确的数值 12341674。</p>
 <p>以上的这些操作我们做了非常多的简化，实际场景中 会比这个复杂的多。</p>
 <p>回顾下，我们将信息编码成二进制，按顺序填上原始数据，再继续填上纠错码 和 其他信息，再和 掩码做一次抑或运算，一张二维码就诞生了，一个非常可靠且承载信息量很大的码。</p>

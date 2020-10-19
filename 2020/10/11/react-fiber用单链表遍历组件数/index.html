@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+<meta name="theme-color" content="#f8f5ec">
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="description" content="react fiber用单链表遍历组件数"><meta name="keywords" content="react, zzz"><link rel="alternate" href="/atom.xml" title="zzz">
+<link rel="canonical" href="http://yoursite.com/2020/10/11/react-fiber用单链表遍历组件数/">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=">
+
+<script id="baidu_push">
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<script>
+  window.config = {"leancloud":"","toc":"","fancybox":"","pjax":"","latex":""};
+</script>
+
+    <title>react fiber用单链表遍历组件数 - zzz</title>
+  </head>
+
+  <body><div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/." class="logo">zzz</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list"></ul>
+</nav>
+<div class="container" id="mobile-panel">
+      <header id="header" class="header"><div class="logo-wrapper">
+  <a href="/." class="logo">zzz</a>
+</div>
+
+<nav class="site-navbar"></nav>
+</header>
+
+      <main id="main" class="main">
+        <div class="content-wrapper">
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">react fiber用单链表遍历组件数
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2020-10-11
+        </span></div>
+    </header>
+
+    <div class="post-content"><blockquote>
+<p>本文译自<a href="https://medium.com/react-in-depth/the-how-and-why-on-reacts-usage-of-linked-list-in-fiber-67f1014d0eb7" target="_blank" rel="noopener">The how and why on React’s usage of linked list in Fiber to walk the component’s tree
+</a></p>
+</blockquote>
+<p>在 react 中，变化的检测机制通常被叫做 “协调 或 渲染”，fiber 是它的最新实现，其实这个概念早在 2017年的时候就已经提出来了。 由于react的底层架构，它提供了很多有趣的特性，比如说 非阻塞渲染，背后的根据优先级来进行更新 和 二次渲染，也就是 react 哲学中的 时间分片概念。</p>
+<p>原文作者还提到，react的新特性除了解决了开发者遇到的一些实际问题外，从工程的角度来说，内部的实现机制 非常具有吸引力，年轻的开发者们学习了解后 会变成更优秀的开发者</p>
+<h4 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h4><p>Fiber的架构有两个主要阶段：协调/渲染和提交。在源码中，协调阶段通常被称为“渲染阶段”。这是React遍历组件树的阶段，并且：</p>
+<ul>
+<li>更新状态和属性</li>
+<li>调用生命周期钩子</li>
+<li>获取组件的children</li>
+<li>将它们与之前的children进行对比</li>
+<li>并计算出需要执行的DOM更新</li>
+</ul>
+<p>上面这些动作 都是fiber 内部的工作流程。但实际需要做的事情 其实取决于 react element 的类型，比如，class component ，react 需要实例化一个类，但对于 functional component 则不需要。<a href="https://github.com/facebook/react/blob/340bfd9393e8173adca5380e6587e1ea1a23cefa/packages/shared/ReactWorkTags.js#L29-L28" target="_blank" rel="noopener">这里</a>，可以查看 fiber 中所有类型的工作目标。</p>
+<p>上述概念 也是 Andrew 所说到的：</p>
+<blockquote>
+<p>处理更新 UI 时，问题在于如果一次执行太多的操作，会导致动画掉帧。。。</p>
+</blockquote>
+<p>所以 啥是 ‘一次执行’的部分？ 简单来说，如果 react 同步遍历整个组件树，然后对于每个组件执行操作，大概要花费至少 16 毫秒 的时间来处理应用逻辑，这将会导致丢帧，视觉效果不顺畅。</p>
+<p>那咋办呢？</p>
+<blockquote>
+<p>较新的浏览器版本 实现了可以解决这个问题的API。。。</p>
+</blockquote>
+<p>这里提到 新的API 就是 requestIdleCallback 全局函数，可将函数放入队列中，在浏览器空闲时段再执行。可以这么用：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">requestIdleCallback(<span class="function">(<span class="params">deadline</span>) =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(deadline.timeRemaining(), deadline.didTimeout);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>如果我们打开控制台 并执行上述代码，会得到：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">47</span></span><br><span class="line">init.js:<span class="number">1</span> <span class="number">14.400000000000002</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p>上述的意思是 浏览器会给我们 14.4 毫秒的时间去做任何想做的事，且 还有没用完所有分配的时间，看 false 的标志，如果时间用完了， <code>deadline.didTimeout</code> 会变成 true。 时刻牢记 及时检查 <code>timeRemaining</code> ，因为时间一用完 就会更新这个值。</p>
+<blockquote>
+<p><code>requestIdleCallback</code> 虽好，但有一点吧，它过于严格，而且不能特别频繁的调用，这样UI 不能保持流畅，所以，react 团队 还是要实现自己的版本</p>
+</blockquote>
+<p>想象一下 如果我们将 react 里 在一个组件上的所有活动事件放到 performword 函数里面，然后用 requestIdleCallback 来管理，代码可能长这个样子：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">requestIdleCallback(<span class="function">(<span class="params">deadline</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 当我们有时间时，为组件树的一部分执行工作    </span></span><br><span class="line">    <span class="keyword">while</span> ((deadline.timeRemaining() &gt; <span class="number">0</span> || deadline.didTimeout) &amp;&amp; nextComponent) &#123;</span><br><span class="line">        nextComponent = performWork(nextComponent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>如果我们在一个组件上 执行操作 然后返回下一个组件的引用，如果一个一个组件更新这样，这个方法是有效可用的，但是这样的话 我们就没办法同步的更新整个组件树。</p>
+<p>像 Andrew 说的，为了用这些API， 我们必须找到一个方法将渲染工作分解为增量单元工作。</p>
+<p>所以，为了解决这个问题，react 团队必须重新实现遍历树的算法，从依赖于内置调用栈的同步递归模型，变为具有链表和指针的异步模型。</p>
+<blockquote>
+<p>如果我们只依赖内置的调用栈，它会一直工作工作 直到调用栈空了。。。<br>如果我们可以随意中断调用栈，然后手动操作调用帧，那岂不是快哉？<br>嗯 者就是 react fiber 的目的。<br>Fiber 是调用栈的二次实现，专供react 组件使用。我们可以将单个 Fiber 视为一个虚拟调用栈。</p>
+</blockquote>
+<h4 id="顺便插一嘴调用栈-stack"><a href="#顺便插一嘴调用栈-stack" class="headerlink" title="顺便插一嘴调用栈 stack"></a>顺便插一嘴调用栈 stack</h4><p>我假设你们都熟悉调用堆栈的概念。如果你在断点处暂停代码，则可以在浏览器的调试工具中看到这一点。以下是维基百科的一些相关引用和图表：</p>
+<blockquote>
+<p>在计算机科学中，调用堆栈是一种堆栈数据结构，它存储有关计算机程序的活跃子程序的信息…调用堆栈存在的主要原因是跟踪每个活跃子程序在完成执行时应该返回控制的位置…调用堆栈由堆栈帧组成…每个堆栈帧对应于一个尚未返回终止的子例程的调用。例如，如果由子程序DrawSquare调用的一个名为DrawLine的子程序当前正在运行，则调用堆栈的顶部可能会像在下面的图片中一样。</p>
+</blockquote>
+<p><img src="%E8%B0%83%E7%94%A8%E6%A0%88.png" alt="调用栈"></p>
+<h4 id="调用栈-和-react-的关系"><a href="#调用栈-和-react-的关系" class="headerlink" title="调用栈 和 react 的关系"></a>调用栈 和 react 的关系</h4><p>React 在协调/渲染阶段 会遍历整个组件树，并且给组件执行一些操作。协调器的先前实现使用依赖于内置堆栈的同步递归模型来遍历树。关于协调的官方文档描述了这个过程，并谈了很多关于递归的内容：</p>
+<blockquote>
+<p>默认情况下，当递归 DOM 节点的子节点时，React 会同时便利两个子节点列表，并在出现差异时作出更新</p>
+</blockquote>
+<p>如果我们考虑下，每个递归调用都会像对战添加一个帧，且是同步的。假设组件树长这样</p>
+<p><img src="2.png" alt="component tree"></p>
+<p>用render函数表示为对象。你可以把它们想象成组件实例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">const a1 = &#123;name: &apos;a1&apos;&#125;;</span><br><span class="line">const b1 = &#123;name: &apos;b1&apos;&#125;;</span><br><span class="line">const b2 = &#123;name: &apos;b2&apos;&#125;;</span><br><span class="line">const b3 = &#123;name: &apos;b3&apos;&#125;;</span><br><span class="line">const c1 = &#123;name: &apos;c1&apos;&#125;;</span><br><span class="line">const c2 = &#123;name: &apos;c2&apos;&#125;;</span><br><span class="line">const d1 = &#123;name: &apos;d1&apos;&#125;;</span><br><span class="line">const d2 = &#123;name: &apos;d2&apos;&#125;;</span><br><span class="line"></span><br><span class="line">a1.render = () =&gt; [b1, b2, b3];</span><br><span class="line">b1.render = () =&gt; [];</span><br><span class="line">b2.render = () =&gt; [c1];</span><br><span class="line">b3.render = () =&gt; [c2];</span><br><span class="line">c1.render = () =&gt; [d1, d2];</span><br><span class="line">c2.render = () =&gt; [];</span><br><span class="line">d1.render = () =&gt; [];</span><br><span class="line">d2.render = () =&gt; [];</span><br></pre></td></tr></table></figure>
+
+<p>react 要遍历树然后执行些操作。 这里简化一下，我们只输出 每个节点的名称。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">walk(a1);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">walk</span>(<span class="params">instance</span>) </span>&#123;</span><br><span class="line">    doWork(instance);</span><br><span class="line">    <span class="keyword">const</span> children = instance.render();</span><br><span class="line">    children.forEach(walk);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">doWork</span>(<span class="params">o</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(o.name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后 我们会得到输出：<code>a1, b1, b2, c1, d1, d2, b3, c2</code>；</p>
+<p>递归方法直观，非常适合遍历树。但是正如我们发现的，它有局限性。最大的一点就是我们无法分解工作为增量单元。我们不能暂停特定组件的工作并在稍后恢复。通过这种方法，React只能不断迭代直到它处理完所有组件，并且堆栈为空。</p>
+<p><strong>那么React如何实现算法在没有递归的情况下遍历树？它使用单链表树遍历算法。它使暂停遍历并阻止堆栈增长成为可能。</strong></p>
+<h4 id="链表遍历"><a href="#链表遍历" class="headerlink" title="链表遍历"></a>链表遍历</h4><p>为实现这一算法，我开门定义三个节点类型：</p>
+<ul>
+<li>child — 第一个子节点的引用</li>
+<li>sibling — 第一个兄弟节点的引用</li>
+<li>return — 父节点的引用</li>
+</ul>
+<p>在React新的协调算法的上下文中，包含这些字段的数据结构称为Fiber。在底层它是一个代表保持工作队列的React Element。更多内容见我的下一篇文章。</p>
+<p>下图展示了通过链表链接的对象的层级结构和它们之间的连接类型：</p>
+<p><img src="3.png" alt="Fiber组件树"></p>
+<p>我们首先定义我们的自定义节点的构造函数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Node</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(instance) &#123;</span><br><span class="line">        <span class="keyword">this</span>.instance = instance;</span><br><span class="line">        <span class="keyword">this</span>.child = <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">this</span>.sibling = <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">this</span>.return = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以及获取节点数组并将它们链接在一起的函数。我们将它用于链接render方法返回的子节点：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">link</span>(<span class="params">parent, elements</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (elements === <span class="literal">null</span>) elements = [];</span><br><span class="line"></span><br><span class="line">    parent.child = elements.reduceRight(<span class="function">(<span class="params">previous, current</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> node = <span class="keyword">new</span> Node(current);</span><br><span class="line">        node.return = parent;</span><br><span class="line">        node.sibling = previous;</span><br><span class="line">        <span class="keyword">return</span> node;</span><br><span class="line">    &#125;, <span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> parent.child;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该函数从最后一个节点开始往前遍历节点数组，将它们链接在一个单独的链表中。它返回第一个兄弟节点的引用。</p>
+<p>这是一个如何工作的简单演示：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> children = [&#123;<span class="attr">name</span>: <span class="string">'b1'</span>&#125;, &#123;<span class="attr">name</span>: <span class="string">'b2'</span>&#125;];</span><br><span class="line"><span class="keyword">const</span> parent = <span class="keyword">new</span> Node(&#123;<span class="attr">name</span>: <span class="string">'a1'</span>&#125;);</span><br><span class="line"><span class="keyword">const</span> child = link(parent, children);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 下面两行代码的执行结果为true</span></span><br><span class="line"><span class="built_in">console</span>.log(child.instance.name === <span class="string">'b1'</span>);</span><br><span class="line"><span class="built_in">console</span>.log(child.sibling.instance === children[<span class="number">1</span>]);</span><br></pre></td></tr></table></figure>
+
+<p>我们还将实现一个辅助函数，为节点执行一些工作。在我们的情况是，它将打印组件的名字。但除此之外，它也获取组件的children并将它们链接在一起：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">doWork</span>(<span class="params">node</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(node.instance.name);</span><br><span class="line">    <span class="keyword">const</span> children = node.instance.render();</span><br><span class="line">    <span class="keyword">return</span> link(node, children);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好的，现在我们已经准备好实现主要遍历算法了。这是父节点优先，深度优先的实现。这是包含有用注释的代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">walk</span>(<span class="params">o</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> root = o;</span><br><span class="line">    <span class="keyword">let</span> current = o;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// 为节点执行工作，获取并连接它的children</span></span><br><span class="line">        <span class="keyword">let</span> child = doWork(current);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果child不为空, 将它设置为当前活跃节点</span></span><br><span class="line">        <span class="keyword">if</span> (child) &#123;</span><br><span class="line">            current = child;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果我们回到了根节点，退出函数</span></span><br><span class="line">        <span class="keyword">if</span> (current === root) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历直到我们发现兄弟节点</span></span><br><span class="line">        <span class="keyword">while</span> (!current.sibling) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 如果我们回到了根节点，退出函数</span></span><br><span class="line">            <span class="keyword">if</span> (!current.return || current.return === root) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 设置父节点为当前活跃节点</span></span><br><span class="line">            current = current.return;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果发现兄弟节点，设置兄弟节点为当前活跃节点</span></span><br><span class="line">        current = current.sibling;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>虽然代码实现并不是特别难以理解，但你可能需要稍微运行一下代码才能理解它。在这里做。 思路是保持对当前节点的引用，并在向下遍历树时重新给它赋值，直到我们到达分支的末尾。然后我们使用return指针返回根节点。</p>
+<p>动画看一下实现的调用栈：<br><img src="4.gif" alt="新的调用栈"></p>
+<p>同时 我们向下遍历树时，调用栈不会增长，下图是我们的打印结果：<br><img src="5.gif" alt="log"></p>
+<h4 id="React-中的循环"><a href="#React-中的循环" class="headerlink" title="React 中的循环 "></a>React 中的循环 </h4><p>React 中实现循环的部分代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">workLoop</span>(<span class="params">isYieldy</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isYieldy) &#123;</span><br><span class="line">        <span class="comment">// Flush work without yielding</span></span><br><span class="line">        <span class="keyword">while</span> (nextUnitOfWork !== <span class="literal">null</span>) &#123;</span><br><span class="line">            nextUnitOfWork = performUnitOfWork(nextUnitOfWork);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// Flush asynchronous work until the deadline runs out of time.</span></span><br><span class="line">        <span class="keyword">while</span> (nextUnitOfWork !== <span class="literal">null</span> &amp;&amp; !shouldYield()) &#123;</span><br><span class="line">            nextUnitOfWork = performUnitOfWork(nextUnitOfWork);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么 这个算法可以同步的遍历整个组件树，同时在每个fiber节点（nextUnitOfWord） 执行相应操作，这种操作一般称为 UI 事件（点击，输入等操作） 引起的交互更新。或者它可以异步地遍历组件树，检查在执行Fiber节点工作后是否还剩下时间。</p>
+
+      </div>
+      
+      <footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/react/">react</a>
+            </div>
+        
+        <nav class="post-nav"><a class="next" href="/2020/09/20/如何生成一个二维码/">
+        <span class="next-text nav-default">如何生成一个二维码</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"></div></div>
+      </main>
+
+      <footer id="footer" class="footer"><div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/ahonn/hexo-theme-even">Even</a>
+  </span>
+
+  <span class="copyright-year">&copy;2020<span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">zzz</span>
+  </span>
+</div>
+</footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
+  <script type="text/javascript" src="/js/src/even.js?v="></script>
+</body>
+</html>
