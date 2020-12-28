@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+<meta name="theme-color" content="#f8f5ec">
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="description" content="股票最大值问题求解"><meta name="keywords" content="algorithm, zzz"><link rel="alternate" href="/atom.xml" title="zzz">
+<link rel="canonical" href="http://yoursite.com/2020/12/26/股票最大值问题求解/">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=">
+
+<script id="baidu_push">
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<script>
+  window.config = {"leancloud":"","toc":"","fancybox":"","pjax":"","latex":""};
+</script>
+
+    <title>股票最大值问题求解 - zzz</title>
+  </head>
+
+  <body><div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/." class="logo">zzz</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list"></ul>
+</nav>
+<div class="container" id="mobile-panel">
+      <header id="header" class="header"><div class="logo-wrapper">
+  <a href="/." class="logo">zzz</a>
+</div>
+
+<nav class="site-navbar"></nav>
+</header>
+
+      <main id="main" class="main">
+        <div class="content-wrapper">
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">股票最大值问题求解
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2020-12-26
+        </span></div>
+    </header>
+
+    <div class="post-content"><blockquote>
+<p>废话不多说，我们今天来看一套算法题：股票怎么买卖最赚</p>
+</blockquote>
+<p>莉蔻上 就有 买卖股票的最佳时期 I II III VI 及 冷冻期 手续费系列，庞大且难（受。。。）
+股票系列一共 6 道题：</p>
+<p>LeetCode 121：最多进行 1 笔交易（k=1）【贪心】
+LeetCode 122：不限交易次数（k=+inf）【二维 DP】
+	LeetCode 309：不限交易次数（k=+inf），但有「冷冻期」的额外条件
+	LeetCode 714：不限交易次数（k=+inf），但有「手续费」的额外条件
+LeetCode 123：最多进行 2 笔交易（k=2）【三维 DP】
+LeetCode 188：最多进行 k 次交易</p>
+<p>不过不要怕，进来就要解决问题，坚信我们一定可以解决这个问题！！！然后团灭掉算法题呀！！！！（其实 有位老铁已经给出了很详实的解释<a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/discuss/108870/Most-consistent-ways-of-dealing-with-the-series-of-stock-problems" target="_blank" rel="noopener">戳这里吧。。</a> 建议大家跑去围观</p>
+<p>不过 今天我还是要在这里再啰嗦一遍，综合大神和自己吭哧吭哧做出来的思路，再咀嚼一遍</p>
+<p>相关题目 感兴趣的小盆友可以自行去 莉蔻官网上查询</p>
+<p>通篇看一下，其实有一套通用方法可以解决此类问题（说了好像没说）：DP table，中文名字：状态机，（DP：dynamic programming，把问题拆解成多个小问题，逐个解决的一种解题思想），我们移步下一场。</p>
+<p>随便拿出一道上述问题，看看别人的解决方法：</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">var maxProfit = function(prices, fee) &#123;</span><br><span class="line">    const n = prices.length;</span><br><span class="line">    const dp = new Array(n).fill(0).map(v =&gt; new Array(2).fill(0));</span><br><span class="line">    dp[0][0] = 0, dp[0][1] = -prices[0];</span><br><span class="line">    for (let i = 1; i &lt; n; ++i) &#123;</span><br><span class="line">        dp[i][0] = Math.max(dp[i - 1][0], dp[i - 1][1] + prices[i] - fee);</span><br><span class="line">        dp[i][1] = Math.max(dp[i - 1][1], dp[i - 1][0] - prices[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    return dp[n - 1][0];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>看懂了吗？会做了吗？ 看不懂，正态人！，好 我们继续看。</p>
+<p>股票问题的共性，慢慢来看，我们拿出第四题（限制最大交易次数为k）来分析，逐个看透，因为第四题是一个最泛化的形式，</p>
+<p>第一题是只进行一次交易，相当于 k = 1；
+第二题是不限交易次数，相当于 k = +infinity（正无穷）；
+第三题是只进行 2 次交易，相当于 k = 2；
+剩下两道也是不限次数，但是加了交易「冷冻期」和「手续费」的额外条件，其实就是第二题的变种，都很容易处理。</p>
+<p>话不多说 先来看下题目：
+188.买卖股票的最佳时机 IV</p>
+<p>给定一个整数数组 prices ，它的第 i 个元素 prices[i] 是一支给定的股票在第 i 天的价格。</p>
+<p>设计一个算法来计算你所能获取的最大利润。你最多可以完成 k 笔交易。</p>
+<p>注意：你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。</p>
+<p>示例 1：</p>
+<p>输入：k = 2, prices = [2,4,1]
+输出：2
+解释：在第 1 天 (股票价格 = 2) 的时候买入，在第 2 天 (股票价格 = 4) 的时候卖出，这笔交易所能获得利润 = 4-2 = 2 。</p>
+<p>示例 2：</p>
+<p>输入：k = 2, prices = [3,2,6,5,0,3]
+输出：7
+解释：在第 2 天 (股票价格 = 2) 的时候买入，在第 3 天 (股票价格 = 6) 的时候卖出, 这笔交易所能获得利润 = 6-2 = 4 。
+随后，在第 5 天 (股票价格 = 0) 的时候买入，在第 6 天 (股票价格 = 3) 的时候卖出, 这笔交易所能获得利润 = 3-0 = 3 。</p>
+<p>提示：</p>
+<p>0 &lt;= k &lt;= 10^9
+0 &lt;= prices.length &lt;= 1000
+0 &lt;= prices[i] &lt;= 1000</p>
+<p>此类动归问题 有一个大概的解题思路：1.理出状态转移方程，2. 找出边界值（可以理解为初始值），然后用空间换时间的方法，最大效益的得出结果。</p>
+<p>比如手上这道题，已知每天的股票值，求最大收益，最多交易k次。那么 我们每天都可以有三个动作： 买入（buy）、卖出（sell）、持有（hold）。由于有买卖次数限制，DP table 应该是三维的，分别是：
+天数（0，1。。。n - 1）
+交易次数（0，1。。。k）
+是否持有股票（1 持有 0 不持有）</p>
+<p>下面构建状态转移方程：
+case1: 今天手里有股票，有两种情况：</p>
+<ol>
+<li>昨天手里有股票，今天没卖，hold</li>
+<li>昨天手里有股票，今天卖出，sell，且收获一笔钱</li>
+</ol>
+<p>case2: 今天手里没有股票，有两种情况：</p>
+<ol>
+<li>昨天手里有股票，今天卖出，sell，且收获一笔钱</li>
+<li>昨天手里没有股票，今天啥也没干，hold</li>
+</ol>
+<p>由上得出状态转移方程：
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dp[i][j][<span class="number">0</span>] = max(dp[i<span class="number">-1</span>][j][<span class="number">0</span>], dp[i<span class="number">-1</span>][j][<span class="number">1</span>] + prices[i])</span><br><span class="line"><span class="comment">// 右边:今天卖了昨天持有的股票，两天买入股票的次数都是j</span></span><br><span class="line">dp[i][j][<span class="number">1</span>] = max(dp[i<span class="number">-1</span>][j][<span class="number">1</span>], dp[i<span class="number">-1</span>][j<span class="number">-1</span>][<span class="number">0</span>] - prices[i])</span><br><span class="line"><span class="comment">// 右边:昨天没有持股而今天买入一只，昨天买入的次数是j-1</span></span><br></pre></td></tr></table></figure></p>
+<p>边界状态：
+这里今天的状态都是从前一天的状态推算出来的，也就是 初始值应该是啥，这里我们只需求出 第 0 天的状态即可
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// j = 0 时，即没有交易过</span></span><br><span class="line">dp[i][<span class="number">0</span>][<span class="number">0</span>] = <span class="number">0</span> <span class="comment">// 无任何操作，收益为0</span></span><br><span class="line">dp[i][<span class="number">0</span>][<span class="number">1</span>] = -<span class="built_in">Number</span>.MAX_VALUE <span class="comment">// 无操作 但手中持有股票 不存在这种可能 所以这里设置成一个不合法的值</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// i = 0 时，即第 0 天</span></span><br><span class="line">dp[<span class="number">0</span>][k][<span class="number">0</span>] = <span class="number">0</span></span><br><span class="line">dp[<span class="number">0</span>][k][<span class="number">1</span>] = -prices[<span class="number">0</span>] <span class="comment">// 第一天买入 收益为负值</span></span><br></pre></td></tr></table></figure></p>
+<p>另外 我们回看题设，k的最大值可以达到 10^9，看起来没多大意义，同一天买入卖出没有利润收益，且 n 天最多可以交易 n/2 （向下取整）次，这里可以做些小优化，取 k 和 n/2 的最小值来计算。</p>
+<p>完整代码如下：</p>
+<p><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> maxProfit = <span class="function"><span class="keyword">function</span>(<span class="params">k, prices</span>) </span>&#123;</span><br><span class="line">	 <span class="comment">// 入参判断</span></span><br><span class="line">    <span class="keyword">if</span> (!prices.length) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> n = prices.length;</span><br><span class="line">    <span class="comment">// 计算有效 k 值</span></span><br><span class="line">    k = <span class="built_in">Math</span>.min(k, <span class="built_in">Math</span>.floor(n / <span class="number">2</span>));</span><br><span class="line">    <span class="keyword">const</span> buy = <span class="keyword">new</span> <span class="built_in">Array</span>(n).fill(<span class="number">0</span>).map(<span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">new</span> <span class="built_in">Array</span>(k + <span class="number">1</span>).fill(<span class="number">0</span>));</span><br><span class="line">    <span class="keyword">const</span> sell = <span class="keyword">new</span> <span class="built_in">Array</span>(n).fill(<span class="number">0</span>).map(<span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">new</span> <span class="built_in">Array</span>(k + <span class="number">1</span>).fill(<span class="number">0</span>));</span><br><span class="line"></span><br><span class="line">	 <span class="comment">// 计算边界情况</span></span><br><span class="line">    buy[<span class="number">0</span>][<span class="number">0</span>] = -prices[<span class="number">0</span>];</span><br><span class="line">    sell[<span class="number">0</span>][<span class="number">0</span>] = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= k; ++i) &#123;</span><br><span class="line">        buy[<span class="number">0</span>][i] = sell[<span class="number">0</span>][i] = -<span class="built_in">Number</span>.MAX_VALUE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; n; ++i) &#123;</span><br><span class="line">        buy[i][<span class="number">0</span>] = <span class="built_in">Math</span>.max(buy[i - <span class="number">1</span>][<span class="number">0</span>], sell[i - <span class="number">1</span>][<span class="number">0</span>] - prices[i]);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">1</span>; j &lt;= k; ++j) &#123;</span><br><span class="line">            buy[i][j] = <span class="built_in">Math</span>.max(buy[i - <span class="number">1</span>][j], sell[i - <span class="number">1</span>][j] - prices[i]);</span><br><span class="line">            sell[i][j] = <span class="built_in">Math</span>.max(sell[i - <span class="number">1</span>][j], buy[i - <span class="number">1</span>][j - <span class="number">1</span>] + prices[i]);   </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Math</span>.max(...sell[n - <span class="number">1</span>]);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+
+      </div>
+      
+      <footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/algorithm/">algorithm</a>
+            </div>
+        
+        <nav class="post-nav"><a class="next" href="/2020/10/11/react-fiber用单链表遍历组件数/">
+        <span class="next-text nav-default">react fiber用单链表遍历组件数</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"></div></div>
+      </main>
+
+      <footer id="footer" class="footer"><div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/ahonn/hexo-theme-even">Even</a>
+  </span>
+
+  <span class="copyright-year">&copy;2020<span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">zzz</span>
+  </span>
+</div>
+</footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
+  <script type="text/javascript" src="/js/src/even.js?v="></script>
+</body>
+</html>
